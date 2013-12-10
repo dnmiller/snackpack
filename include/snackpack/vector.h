@@ -1,6 +1,7 @@
 #ifndef _SNACKPACK_VECTOR_H_
 #define _SNACKPACK_VECTOR_H_
 
+
 /* Needed for float_t typedef. */
 #include <math.h>
 
@@ -22,5 +23,16 @@ typedef struct {
 #define SP_VECTOR_NEW_INIT(_len, _val) \
     { .len = (_len), .data = (float_t[]){SP_REP##_len(_val)}}
 
+
+SP_STATUS
+sp_vector_add(
+    sp_vector * const x,
+    const sp_vector * const y);
+
+
+SP_STATUS
+sp_vector_sub(
+    sp_vector * const x,
+    const sp_vector * const y);
 
 #endif

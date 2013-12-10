@@ -4,7 +4,8 @@
 #include <stdint.h>
 
 
-typedef uint8_t len_t;
+typedef uint_fast8_t    len_t;
+typedef int_fast8_t     inc_t;
 
 
 typedef enum {
@@ -14,5 +15,6 @@ typedef enum {
     SP_STATUS_INVALID_DIM
 
 } SP_STATUS;
+
 
 #endif
