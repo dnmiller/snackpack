@@ -1,7 +1,7 @@
 #include <float.h>
 #include <stdint.h>
 
-#include "internal/blas1.h"
+#include "snackpack/blas1_real.h"
 
 
 float_t
