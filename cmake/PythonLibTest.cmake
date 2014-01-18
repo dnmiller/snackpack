@@ -28,7 +28,7 @@ function(add_python_test_target TARGET_NAME TARGET_LIB)
         message(FATAL_ERROR "nosetests not found! Aborting...")
     endif()
 
-    # This is where we copy the files.
+    # This is where we copy the files. Make up a directory.
     set(COPY_DIR ${CMAKE_BINARY_DIR}/${TARGET_NAME}_files)
 
     add_custom_target(${TARGET_NAME}
@@ -41,9 +41,6 @@ function(add_python_test_target TARGET_NAME TARGET_LIB)
 
     add_custom_target(${COPY_TARGET} COMMENT "Copying ${TARGET_NAME} files")
 
-    # Step 1: We don't "compile" the python source files, but we want to
-    # copy them to the build directory so that we don't need to mess with
-    # the PATH. 
     foreach(pysource ${ARGN})
         add_custom_command(
             TARGET ${COPY_TARGET}
