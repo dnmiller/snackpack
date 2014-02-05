@@ -20,6 +20,10 @@ if(NOT NOSETESTS_PATH)
 endif()
 
 
+function(add_copy_target TARGET_NAME TARGET_SOURCES)
+endfunction()
+
+
 function(add_python_test_target TARGET_NAME TARGET_LIB)
     # Try again to find nosetests here. We may have switched virtualenvs or
     # something since first running cmake.

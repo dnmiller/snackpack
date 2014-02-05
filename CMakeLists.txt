@@ -28,3 +28,6 @@ add_subdirectory(src)
 
 # Test source files should be placed in the test subdirectory.
 add_subdirectory(test)
+
+# Python / Matlab interfaces
+add_subdirectory(interface)
