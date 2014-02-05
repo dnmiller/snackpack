@@ -9,8 +9,8 @@ inc_t       = ctypes.c_int
 FloatArray = lambda x: np.array(x, dtype=np.float32)
 
 
-def library_function(fname, restype, argtypes, doc):
-    libfunc = getattr(_libsp, 'sp_blas_' + fname)
+def library_function(clib, fname, restype, argtypes, doc):
+    libfunc = getattr(clib, 'sp_blas_' + fname)
     libfunc.restype = restype
     libfunc.argtypes = argtypes
 

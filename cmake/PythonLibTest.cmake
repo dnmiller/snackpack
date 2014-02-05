@@ -20,11 +20,44 @@ if(NOT NOSETESTS_PATH)
 endif()
 
 
-function(add_copy_target TARGET_NAME TARGET_SOURCES)
+function(add_interface_target TARGET_NAME SHARED_LIB TARGET_DIR)
+    set(IFACE_COPY_DIR ${CMAKE_BINARY_DIR}/${TARGET_NAME}/${TARGET_DIR})
+
+    add_custom_target(${TARGET_NAME} COMMENT "Copying ${TARGET_NAME} files")
+
+    foreach(isource ${ARGN})
+        add_custom_command(
+            TARGET ${TARGET_NAME}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${IFACE_COPY_DIR}
+            COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/${TARGET_DIR}/${isource} 
+            ${IFACE_COPY_DIR}/${isource})
+    endforeach()
+
+    get_target_property(LIB_NAME ${SHARED_LIB} LOCATION)
+    get_target_property(LIB_LOCATION ${SHARED_LIB} OUTPUT_NAME)
+    message(STATUS ${LIB_LOCATION})
+    message(STATUS ${LIB_NAME})
+
+    set(COPY_TARGET copy_${SHARED_LIB}_${TARGET_NAME})
+
+    add_custom_target(${COPY_TARGET} 
+        COMMENT "Copying ${SHARED_LIB} shared library")
+
+    # Add a command to copy the target library into the same folder as the
+    # python files.
+    add_custom_command(
+        TARGET ${COPY_TARGET}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${SHARED_LIB}>
+        ${IFACE_COPY_DIR}/$<TARGET_FILE_NAME:${SHARED_LIB}>)
+
+    # Make sure there's a lib to copy.
+    add_dependencies(${COPY_TARGET} ${SHARED_LIB})
+    add_dependencies(${TARGET_NAME} ${COPY_TARGET})
 endfunction()
 
 
-function(add_python_test_target TARGET_NAME TARGET_LIB)
+function(add_python_test_target TARGET_NAME TARGET_LIB IFACE_TARGET)
     # Try again to find nosetests here. We may have switched virtualenvs or
     # something since first running cmake.
     find_program(NOSETESTS_PATH nosetests)
@@ -37,6 +70,7 @@ function(add_python_test_target TARGET_NAME TARGET_LIB)
 
     add_custom_target(${TARGET_NAME}
         COMMAND ${NOSETESTS_PATH}
+            --with-path=${CMAKE_BINARY_DIR}/${IFACE_TARGET}
         WORKING_DIRECTORY ${COPY_DIR}
         DEPENDS ${TARGET_LIB} ${SOURCE_FILES}
         COMMENT "Running ${TARGET_NAME}")
@@ -53,16 +87,8 @@ function(add_python_test_target TARGET_NAME TARGET_LIB)
             ${CMAKE_CURRENT_SOURCE_DIR}/${pysource} ${COPY_DIR})
     endforeach()
 
-    get_target_property(TARGET_LIB_NAME ${TARGET_LIB} LOCATION)
-
-    # Add a command to copy the target library into the same folder as the
-    # python files.
-    add_custom_command(
-        TARGET ${COPY_TARGET}
-        COMMAND ${CMAKE_COMMAND} -E copy ${TARGET_LIB_NAME} ${COPY_DIR})
-
     # Make the copy target a dependency of the testing target to ensure it
     # gets done first.
-    add_dependencies(${TARGET_NAME} ${TARGET_LIB})
     add_dependencies(${TARGET_NAME} ${COPY_TARGET})
+    add_dependencies(${TARGET_NAME} ${IFACE_TARGET})
 endfunction()
