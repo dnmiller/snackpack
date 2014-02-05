@@ -20,6 +20,7 @@ def library_function(clib, fname, restype, argtypes, doc):
             if hasattr(arg, 'ctypes'):
                 libargs.append(arg.ctypes.data_as(type))
             else:
+                # TODO: This can result in some really dumb casting stuff.
                 libargs.append(type(arg))
         return libfunc(*libargs)
 

@@ -34,11 +34,6 @@ function(add_interface_target TARGET_NAME SHARED_LIB TARGET_DIR)
             ${IFACE_COPY_DIR}/${isource})
     endforeach()
 
-    get_target_property(LIB_NAME ${SHARED_LIB} LOCATION)
-    get_target_property(LIB_LOCATION ${SHARED_LIB} OUTPUT_NAME)
-    message(STATUS ${LIB_LOCATION})
-    message(STATUS ${LIB_NAME})
-
     set(COPY_TARGET copy_${SHARED_LIB}_${TARGET_NAME})
 
     add_custom_target(${COPY_TARGET} 
