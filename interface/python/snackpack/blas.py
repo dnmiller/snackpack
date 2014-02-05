@@ -18,6 +18,6 @@ libsp = ctypes.cdll.LoadLibrary(_libsp_filename)
 
 
 sasum = library_function(
-    libsp, 'sasum', float_t, [len_t, float_t_ptr, inc_t],
+    libsp, 'sp_blas_sasum', float_t, [len_t, float_t_ptr, inc_t],
     """Sum an array of numbers (single-precision).
     """)
