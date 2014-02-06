@@ -16,12 +16,16 @@ def library_function(clib, fname, restype, argtypes, doc):
 
     def func(*args):
         libargs = []
+        if len(args) != len(func.argtypes):
+            raise ValueError('Invalid number of arguments')
+
         for arg, type in zip(args, func.argtypes):
             if hasattr(arg, 'ctypes'):
                 libargs.append(arg.ctypes.data_as(type))
             else:
                 # TODO: This can result in some really dumb casting stuff.
                 libargs.append(type(arg))
+
         return libfunc(*libargs)
 
     func.__name__ = fname
