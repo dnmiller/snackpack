@@ -1,16 +1,26 @@
 #include <float.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "snackpack/blas1_real.h"
 
 
+/**
+ * Return the sum of the absolute values of a vector (1-norm).
+ *
+ * \param [in] n        Number of elements add
+ * \param [in] x        Pointer to the first element of the vector
+ * \param [in] inc_x    Increment to sum over. Negative increments are not
+ *                      supported.
+ * \returns             Sum of absolute values of the vector elements
+ */
 float_t
 sp_blas_sasum(
     const len_t n,
     const float_t *x,
     const inc_t inc_x)
 {
-    if (n <= 0)
+    if (n <= 0 || inc_x <= 0)
         return 0.0f;
 
     float_t tmp = 0.0f;
@@ -19,10 +29,8 @@ sp_blas_sasum(
             tmp += fabsf(x[i]);
         }
     } else {
-        len_t ix = inc_x < 0 ? (1 - n) * inc_x : 0;
-
-        for (len_t i = 0; i < n; i++) {
-            tmp += fabsf(x[i]);
+        for (len_t i = 0, ix = 0; i < n; i++) {
+            tmp += fabsf(x[ix]);
             ix += inc_x;
         }
     }
