@@ -1,5 +1,4 @@
 import ctypes
-import numpy as np
 import os
 import inspect
 
@@ -18,8 +17,9 @@ libsp = ctypes.cdll.LoadLibrary(_libsp_filename)
 
 
 sasum = library_function(
-    libsp, 'sp_blas_sasum', float_t, [len_t, float_t_ptr, inc_t],
-    """Sum an array of numbers (single-precision).
+    libsp, 'sp_blas_sasum', float_t,
+    [len_t, float_t_ptr, inc_t],
+    """Add the absolute value of the elements of a vector.
     """)
 
 saxpy = library_function(
