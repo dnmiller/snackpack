@@ -24,10 +24,10 @@ sp_blas_saxpy(
 
 void
 sp_blas_srotg(
-    float_t *c,
-    float_t *s,
     float_t *sa,
-    float_t *sb);
+    float_t *sb,
+    float_t *c,
+    float_t *s);
 
 
 void

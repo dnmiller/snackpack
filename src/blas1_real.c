@@ -38,6 +38,20 @@ sp_blas_sasum(
 }
 
 
+/**
+ * Compute a*x + y where x and y are vectors and store the result in y.
+ *
+ * \param [in] n            Number of elements in x and y
+ * \param [in] alpha        Scaler to multiply x by
+ * \param [in] x            x vector
+ * \param [in] inc_x        Increment to iterate over x
+ * \param [in, out] y       y vector, stored result
+ * \param [in] inc_y        Increment to iterate over y
+ *
+ * If inc_x or inc_y is negative, then iteration is backwards starting with
+ * element (1 - n) * inc. For example, n = 5 and inc_x = -2 would iterate
+ * over x[8], x[6], x[4], x[2], x[0].
+ */
 void
 sp_blas_saxpy(
     const len_t n,
@@ -67,19 +81,27 @@ sp_blas_saxpy(
 }
 
 
+/**
+ * Compute a Givens plane rotation.
+ *
+ * \param[in, out] sa
+ * \param[in, out] sb
+ * \param[out] c
+ * \param[out] s
+ */
 void
 sp_blas_srotg(
-    float_t *c,
-    float_t *s,
     float_t *sa,
-    float_t *sb)
+    float_t *sb,
+    float_t *c,
+    float_t *s)
 {
     float_t scale = fabsf(*sa) + fabsf(*sb);
 
     /* We do an actual comparison to zero here because the scaling should
      * account for the very small case.
      */
-    if (fabsf(scale) == 0.0f) {
+    if (scale == 0.0f) {
         *c = 1.0f;
         *s = 0.0f;
         *sa = 0.0f;
@@ -92,7 +114,14 @@ sp_blas_srotg(
 
         *c = *sa/r;
         *s = *sb/r;
-        *sb = fabsf(*sa) > fabsf(*sb) ? *s : 1.0f / *c;
+
+        if (fabsf(*sa) > fabsf(*sb)) {
+            *sb = *s;
+        } else if (fabsf(*sa) >= fabsf(*sb) && *c != 0.0f) {
+            *sb = 1.0f / *c;
+        } else {
+            *sb = 1.0f;
+        }
         *sa = r;
     }
 }
