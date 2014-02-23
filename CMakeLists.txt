@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 
+# Compiler flags for the standard build should be placed here.
+set(CMAKE_C_FLAGS "-Weverything -Wall -Wextra -O3")
+
 set(PROJECT_NAME snackpack)
 project(${PROJECT_NAME})
 

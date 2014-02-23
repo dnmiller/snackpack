@@ -112,14 +112,14 @@ sp_blas_sscal(
     const inc_t inc_x);
 
 
-inc_t
+len_t
 sp_blas_isamax(
     const len_t n,
     const float_t *x,
     const inc_t inc_x);
 
 
-inc_t
+len_t
 sp_blas_isamin(
     const len_t n,
     const float_t *x,

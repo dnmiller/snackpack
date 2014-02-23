@@ -39,13 +39,14 @@ sp_blas_sasum(
 
 
 /**
- * Compute a*x + y where x and y are vectors and store the result in y.
+ * Compute a*x + y where a is a scalar and x and y are vectors, and store
+ * the result in y.
  *
  * \param [in] n            Number of elements in x and y
  * \param [in] alpha        Scaler to multiply x by
  * \param [in] x            x vector
  * \param [in] inc_x        Increment to iterate over x
- * \param [in, out] y       y vector, stored result
+ * \param [in,out] y        y vector, stored result
  * \param [in] inc_y        Increment to iterate over y
  *
  * If inc_x or inc_y is negative, then iteration is backwards starting with
@@ -69,8 +70,8 @@ sp_blas_saxpy(
             y[i] += alpha * x[i];
         }
     } else {
-        len_t ix = inc_x < 0 ? (1 - n) * inc_x : 0;
-        len_t iy = inc_y < 0 ? (1 - n) * inc_y : 0;
+        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
 
         for (len_t i = 0; i < n; i++) {
             y[iy] += alpha * x[ix];
@@ -84,10 +85,10 @@ sp_blas_saxpy(
 /**
  * Compute a Givens plane rotation.
  *
- * \param[in, out] sa
- * \param[in, out] sb
- * \param[out] c
- * \param[out] s
+ * \param[in,out] sa    First element of vector to be rotated
+ * \param[in,out] sb    Second element of vector to be rotated
+ * \param[out] c        Cosine of Givens rotation
+ * \param[out] s        Sine of Givens rotation
  */
 void
 sp_blas_srotg(
@@ -128,14 +129,15 @@ sp_blas_srotg(
 
 
 /**
+ * Apply a plane rotation.
  *
- * @param n         Number of elements in x and y
- * @param x         Array of dimension at least (1 + (n-1)*abs(inc_x))
- * @param inc_x     Increment for the elements of x
- * @param y         Array of dimension at least (1 + (n-2)*abs(inc_y))
- * @param inc_y     Increment for the elements of y
- * @param c         Cosine part of the Givens rotation
- * @param s         Sine part of the Givens rotation
+ * \param n         Number of elements in x and y
+ * \param x         Array of dimension at least (1 + (n-1)*abs(inc_x))
+ * \param inc_x     Increment for the elements of x
+ * \param y         Array of dimension at least (1 + (n-2)*abs(inc_y))
+ * \param inc_y     Increment for the elements of y
+ * \param c         Cosine part of the Givens rotation
+ * \param s         Sine part of the Givens rotation
  */
 void
 sp_blas_srot(
@@ -159,8 +161,8 @@ sp_blas_srot(
             x[i] = tmp;
         }
     } else {
-        len_t ix = inc_x < 0 ? (1 - n) * inc_x : 0;
-        len_t iy = inc_y < 0 ? (1 - n) * inc_y : 0;
+        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
 
         for (len_t i = 0; i < n; i++) {
             tmp = c * x[ix] + s * y[iy];
@@ -193,8 +195,8 @@ sp_blas_sswap(
             y[i] = tmp;
         }
     } else {
-        len_t ix = inc_x < 0 ? (1 - n) * inc_x : 0;
-        len_t iy = inc_y < 0 ? (1 - n) * inc_y : 0;
+        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
 
         for (len_t i = 0; i < n; i++) {
             tmp = x[ix];
@@ -223,8 +225,8 @@ sp_blas_scopy(
             y[i] = x[i];
         }
     } else {
-        len_t ix = inc_x < 0 ? (1 - n) * inc_x : 0;
-        len_t iy = inc_y < 0 ? (1 - n) * inc_y : 0;
+        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
 
         for (len_t i = 0; i < n; i++) {
             y[iy] = x[ix];
@@ -252,8 +254,8 @@ sp_blas_sdot(
             tmp += x[i] * y[i];
         }
     } else {
-        len_t ix = inc_x < 0 ? (1 - n) * inc_x : 0;
-        len_t iy = inc_y < 0 ? (1 - n) * inc_y : 0;
+        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
 
         for (len_t i = 0; i < n; i++) {
             tmp += x[ix] * y[ix];
@@ -285,8 +287,8 @@ sp_blas_sdsdot(
             tmp += (double_t)x[i] * (double_t)y[i];
         }
     } else {
-        len_t ix = inc_x < 0 ? (1 - n) * inc_x : 0;
-        len_t iy = inc_y < 0 ? (1 - n) * inc_y : 0;
+        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
 
         for (len_t i = 0; i < n; i++) {
             tmp += (double_t)x[ix] * (double_t)y[ix];
@@ -310,7 +312,7 @@ sp_blas_snrm2(
     } else if (n == 1)
         return fabsf(*x);
 
-    len_t ix = inc_x < 0 ? (1 - n) * inc_x : 0;
+    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
     float_t scale = 0.0f;
     float_t sq = 1.0f;
 
@@ -350,7 +352,7 @@ sp_blas_srotm(
     float_t w, z;
 
     if (inc_x == inc_y && inc_x > 0) {
-        len_t n_steps = n * inc_x;
+        len_t n_steps = n * (len_t)(inc_x);
         switch (flag) {
             case -1:
                 h11 = p[1];
@@ -388,8 +390,8 @@ sp_blas_srotm(
                 return;
         }
     } else {
-        len_t ix = inc_x < 0 ? (1 - n) * inc_x : 0;
-        len_t iy = inc_y < 0 ? (1 - n) * inc_y : 0;
+        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
         switch (flag) {
             case -1:
                 h11 = p[1];
@@ -483,6 +485,7 @@ sp_blas_srotmg(
                 *d2 /= u;
                 *x *= u;
             }
+            // else need flag assignment here.
         }
         else {
             /* Line 158 */
@@ -594,19 +597,17 @@ sp_blas_sscal(
 }
 
 
-inc_t
+len_t
 sp_blas_isamax(
     const len_t n,
     const float_t *x,
     const inc_t inc_x)
 {
-    if (n < 1 || inc_x <= 0)
-        return -1;
-    if (n == 1)
+    if (n <= 1)
         return 0;
 
     if (inc_x == 1) {
-        inc_t imax = 0;
+        len_t imax = 0;
         float_t max = fabsf(x[imax]);
         for (len_t i = 1; i < n; i++) {
             float_t max_xi = fabsf(x[i]);
@@ -617,9 +618,9 @@ sp_blas_isamax(
         }
         return imax;
     } else {
-        len_t ix = inc_x < 0 ? (1 - n) * inc_x : 0;
+        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
         float_t max = fabsf(x[ix]);
-        inc_t imax = ix;
+        len_t imax = ix;
         ix += inc_x;
 
         for (len_t i = 1; i < n; i++) {
@@ -635,19 +636,17 @@ sp_blas_isamax(
 }
 
 
-inc_t
+len_t
 sp_blas_isamin(
     const len_t n,
     const float_t *x,
     const inc_t inc_x)
 {
-    if (n < 1 || inc_x <= 0)
-        return -1;
-    if (n == 1)
+    if (n <= 1)
         return 0;
 
     if (inc_x == 1) {
-        inc_t imin = 0;
+        len_t imin = 0;
         float_t min = fabsf(x[imin]);
         for (len_t i = 1; i < n; i++) {
             float_t min_xi = fabsf(x[i]);
@@ -658,9 +657,9 @@ sp_blas_isamin(
         }
         return imin;
     } else {
-        len_t ix = inc_x < 0 ? (1 - n) * inc_x : 0;
+        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
         float_t min = fabsf(x[ix]);
-        inc_t imin = ix;
+        len_t imin = ix;
         ix += inc_x;
 
         for (len_t i = 1; i < n; i++) {
