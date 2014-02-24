@@ -194,6 +194,9 @@ sp_blas_srot(
 }
 
 
+/**
+ * Swap the contents of two vectors.
+ */
 void
 sp_blas_sswap(
     const len_t n,
@@ -229,6 +232,9 @@ sp_blas_sswap(
 }
 
 
+/**
+ * Copy the contents of one vector to another.
+ */
 void
 sp_blas_scopy(
     const len_t n,
@@ -258,6 +264,9 @@ sp_blas_scopy(
 }
 
 
+/**
+ * Take the dot product of two vectors.
+ */
 float_t
 sp_blas_sdot(
     const len_t n,
@@ -289,6 +298,10 @@ sp_blas_sdot(
 }
 
 
+/**
+ * Take the dot product of two single-precision vectors, doing the
+ * accumulation in double precision.
+ */
 float_t
 sp_blas_sdsdot(
     const len_t n,
@@ -322,6 +335,9 @@ sp_blas_sdsdot(
 }
 
 
+/**
+ * Take the two-norm of a vector.
+ */
 float_t
 sp_blas_snrm2(
     const len_t n,
@@ -330,8 +346,9 @@ sp_blas_snrm2(
 {
     if (n < 1 || inc_x < 1) {
         return 0.0f;
-    } else if (n == 1)
+    } else if (n == 1) {
         return fabsf(*x);
+    }
 
     len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
     float_t scale = 0.0f;
@@ -355,6 +372,9 @@ sp_blas_snrm2(
 }
 
 
+/**
+ * Apply a modified Givens rotation to two vectors.
+ */
 void
 sp_blas_srotm(
     const len_t n,
@@ -459,13 +479,106 @@ sp_blas_srotm(
 }
 
 
+/**
+ * Generate a modified Givens rotation.
+ *
+ * The modified Givens rotation zeros elements of a vector or matrix without
+ * the square root needed for the traditional Givens rotation (see srotg).
+ *
+ * The Givens rotation applied to two vectors \f$x\f$ and \f$y\f$ nullifies
+ * the first element of \f$y\f$, such that
+ *
+ * \f[
+ *      \begin{bmatrix}
+ *      c & s \\ -s & c
+ *      \end{bmatrix}
+ *      \begin{bmatrix}
+ *      x_1 & x_2 & \cdots & x_n \\ y_1 & y_2 & \cdots & y_n
+ *      \end{bmatrix}
+ *      =
+ *      \begin{bmatrix}
+ *      \bar x_1 & \bar x'_2 & \cdots & \bar x'_n \\
+ *      0 & \bar y'_2 & \cdots & \bar y'_n
+ *      \end{bmatrix}
+ *      = G X
+ * \f]
+ *
+ * where \f$ c = x_1/r \f$, \f$ s = y_1/r \f$, and
+ * \f$ r = \pm \sqrt{x_1^2 + y_1^2} \f$. The sign of \f$ r \f$ is equal to
+ * the sign of \f$ a \f$ if \f$ |a| \geq |b| \f$ or \f$ b \f$ otherwise.
+ *
+ * The modified Givens rotation reduces the number of floating-point
+ * operations and removes the square-root necessary to produce the plane
+ * rotation. Suppose that \f$ X \f$ is available as a factored matrix
+ *
+ * \f[
+ *      X = D^{1/2} X' =
+ *      \begin{bmatrix}
+ *      d_1^{1/2} & 0 \\ 0 & d_2^{1/2}
+ *      \end{bmatrix}
+ *      \begin{bmatrix}
+ *      x'_1 & x'_2 & \cdots & x'_n \\ y'_1 & y'_2 & \cdots & y'_n
+ *      \end{bmatrix}
+ * \f]
+ *
+ * Substituting for \f$ X \f$ in \f$ G X \f$ and refactoring
+ * \f$ G D^{1/2} \f$ as \f$ \bar D^{1/2} H \f$ results in
+ *
+ * \f[
+ *      GX = G D^{1/2} X' = \bar D^{1/2} H X' =
+ *      \begin{bmatrix}
+ *      \bar d_1^{1/2} & 0 \\ 0 & \bar d_2^{1/2}
+ *      \end{bmatrix}
+ *      \begin{bmatrix}
+ *      h_{11} & h_{12} \\ h_{21} & h_{22}
+ *      \end{bmatrix}
+ *      X'
+ * \f]
+ *
+ * The trick in the modified Givens approach is to choose \f$ d_1 \f$ and
+ * \f$ d_2 \f$ such that two elements of \f$ H \f$ are exactly 1,
+ * eliminating two multiplications for each column in \f$ X' \f$.
+ *
+ * There are two cases to consider. First, if \f$ |s| < |c| \f$,
+ *
+ * \f{eqnarray*}{
+ *      GD^{1/2} &=&
+ *      \begin{bmatrix}
+ *      d_1^{1/2} c & d_2^{1/2} s \\ -d_1^{1/2} s & d_2^{1/2} c
+ *      \end{bmatrix} =
+ *      \begin{bmatrix}
+ *      d_1^{1/2} c & 0 \\ 0 & d_2^{1/2} c
+ *      \end{bmatrix}
+ *      \begin{bmatrix}
+ *      1 & (s/c)(d_2/d_1)^{1/2} \\ -(s/c)(d_1/d_2)^{1/2} & 1
+ *      \end{bmatrix} \\
+ *      &=& \begin{bmatrix}
+ *      \bar d_1^{1/2} & 0 \\ 0 & \bar d_2^{1/2}
+ *      \end{bmatrix}
+ *      \begin{bmatrix}
+ *      1 & d_2 y_1 / d_1 x'_1 \\ -y'_1 / x'_1 & 1
+ *      \end{bmatrix} \\
+ *      &=& \bar D^{1/2} H
+ * \f}
+ *
+ * Multiplication on the right by the first column of \f$ X' \f$ results in
+ *
+ * \f[
+ *      \bar D^{1/2} H =
+ *      \begin{bmatrix}
+ *      x_1' + d_2 {y'_1}^2 / d_1 x_1 \\ 0
+ *      \end{bmatrix}
+ * \f]
+ *
+ * thus creating a zero in \f$ X' \f$ - the scaled version of \f$ X \f$.
+ */
 void
 sp_blas_srotmg(
     float_t * const d1,
     float_t * const d2,
     float_t * const x,
     const float_t y,
-    float_t *p)
+    float_t * const p)
 {
     const float_t GAMMA = 4096.0f;
     const float_t R_GAMMA_SQ = 5.96046e-8f;
@@ -478,8 +591,7 @@ sp_blas_srotmg(
     /* Line 120 */
     if (*d1 < 0.0f) {
         flag = -1;
-        h11 = h12 = h21 = h22 = 0.0f;
-        *x = *d1 = *d2 = 0.0f;
+        h11 = h12 = h21 = h22 = *d1 = *d2 = *x = 0.0f;
     } else {
         /* Line 132 */
         p2 = *d2 * y;
@@ -603,8 +715,9 @@ sp_blas_sscal(
     float_t * const x,
     const inc_t inc_x)
 {
-    if (n <= 0 || inc_x <= 0)
+    if (n <= 0 || inc_x <= 0) {
         return;
+    }
 
     if (inc_x == 1) {
         for (len_t i = 0; i < n; i++) {
@@ -624,8 +737,9 @@ sp_blas_isamax(
     const float_t * const x,
     const inc_t inc_x)
 {
-    if (n <= 1)
+    if (n <= 1) {
         return 0;
+    }
 
     if (inc_x == 1) {
         len_t imax = 0;
@@ -663,8 +777,9 @@ sp_blas_isamin(
     const float_t * const x,
     const inc_t inc_x)
 {
-    if (n <= 1)
+    if (n <= 1) {
         return 0;
+    }
 
     if (inc_x == 1) {
         len_t imin = 0;
