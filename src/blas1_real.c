@@ -5,23 +5,30 @@
 #include "snackpack/blas1_real.h"
 
 
+/*
+ * General TODO:
+ * - Add logging functions for dumb function arguments.
+ */
+
+
 /**
  * Return the sum of the absolute values of a vector (1-norm).
  *
  * \param [in] n        Number of elements add
  * \param [in] x        Pointer to the first element of the vector
- * \param [in] inc_x    Increment to sum over. Negative increments are not
- *                      supported.
+ * \param [in] inc_x    Increment (stride) to sum over. Negative increments
+ *                      are not supported.
  * \returns             Sum of absolute values of the vector elements
  */
 float_t
 sp_blas_sasum(
     const len_t n,
-    const float_t *x,
+    const float_t * const x,
     const inc_t inc_x)
 {
-    if (n <= 0 || inc_x <= 0)
+    if (n <= 0 || inc_x <= 0) {
         return 0.0f;
+    }
 
     float_t tmp = 0.0f;
     if (inc_x == 1) {
@@ -42,12 +49,12 @@ sp_blas_sasum(
  * Compute a*x + y where a is a scalar and x and y are vectors, and store
  * the result in y.
  *
- * \param [in] n            Number of elements in x and y
- * \param [in] alpha        Scaler to multiply x by
- * \param [in] x            x vector
- * \param [in] inc_x        Increment to iterate over x
- * \param [in,out] y        y vector, stored result
- * \param [in] inc_y        Increment to iterate over y
+ * \param[in] n             Number of elements in x and y
+ * \param[in] alpha         Scaler to multiply x by
+ * \param[in] x             x vector
+ * \param[in] inc_x         Increment (stride) to iterate over x
+ * \param[in,out] y         y vector, stored result
+ * \param[in] inc_y         Increment (stride) to iterate over y
  *
  * If inc_x or inc_y is negative, then iteration is backwards starting with
  * element (1 - n) * inc. For example, n = 5 and inc_x = -2 would iterate
@@ -57,13 +64,14 @@ void
 sp_blas_saxpy(
     const len_t n,
     const float_t alpha,
-    const float_t *x,
+    const float_t * const x,
     const inc_t inc_x,
-    float_t *y,
+    float_t * const y,
     const inc_t inc_y)
 {
-    if (n <= 0 || alpha == 0.0f)
+    if (n <= 0 || alpha == 0.0f) {
         return;
+    }
 
     if (inc_x == 1 && inc_y == 1) {
         for (len_t i = 0; i < n; i++) {
@@ -85,45 +93,56 @@ sp_blas_saxpy(
 /**
  * Compute a Givens plane rotation.
  *
- * \param[in,out] sa    First element of vector to be rotated
- * \param[in,out] sb    Second element of vector to be rotated
- * \param[out] c        Cosine of Givens rotation
- * \param[out] s        Sine of Givens rotation
+ * The z parameter is something of a mystery. None of the LAPACK functions
+ * call this function since the modified Givens rotation (srotmg) is more
+ * efficient.
+ *
+ * \param[in,out] a     On entry, the first element of vector to be rotated.
+ *                      On exit, equal to the first (non-zero) element of
+ *                      the rotated vector.
+ * \param[in,out] b     On entry, the second element of vector to be
+ *                      rotated. On exit, equal to the z parameter of the
+ *                      Givens rotation (see notes).
+ * \param[out] c        Cosine of rotation angle
+ * \param[out] s        Sine of rotation angle
  */
 void
 sp_blas_srotg(
-    float_t *sa,
-    float_t *sb,
-    float_t *c,
-    float_t *s)
+    float_t * const a,
+    float_t * const b,
+    float_t * const c,
+    float_t * const s)
 {
-    float_t scale = fabsf(*sa) + fabsf(*sb);
-
     /* We do an actual comparison to zero here because the scaling should
-     * account for the very small case.
+     * prevent underflows.
      */
+    float_t scale = fabsf(*a) + fabsf(*b);
     if (scale == 0.0f) {
         *c = 1.0f;
         *s = 0.0f;
-        *sa = 0.0f;
-        *sb = 0.0f;
+        *a = 0.0f;
+        *b = 0.0f;
     } else {
-        float_t roe = fabsf(*sa) > fabsf(*sb) ? *sa : *sb;
-        float_t r = scale * sqrtf(
-            (*sa/scale)*(*sa/scale) + (*sb/scale)*(*sb/scale));
-        r = copysignf(r, roe);
+        float_t abs_a = fabsf(*a);
+        float_t abs_b = fabsf(*b);
+        float_t a_scale = *a/scale;
+        float_t b_scale = *b/scale;
 
-        *c = *sa/r;
-        *s = *sb/r;
+        float_t r = scale * sqrtf(a_scale*a_scale + b_scale*b_scale);
+        r = copysignf(r, abs_a > abs_b ? *a : *b);
 
-        if (fabsf(*sa) > fabsf(*sb)) {
-            *sb = *s;
-        } else if (fabsf(*sa) >= fabsf(*sb) && *c != 0.0f) {
-            *sb = 1.0f / *c;
+        *c = *a/r;
+        *s = *b/r;
+
+        /* Determine the z parameter. */
+        if (abs_a > abs_b) {
+            *b = *s;
+        } else if (abs_a >= abs_b && *c != 0.0f) {
+            *b = 1.0f / *c;
         } else {
-            *sb = 1.0f;
+            *b = 1.0f;
         }
-        *sa = r;
+        *a = r;
     }
 }
 
@@ -131,20 +150,20 @@ sp_blas_srotg(
 /**
  * Apply a plane rotation.
  *
- * \param n         Number of elements in x and y
- * \param x         Array of dimension at least (1 + (n-1)*abs(inc_x))
- * \param inc_x     Increment for the elements of x
- * \param y         Array of dimension at least (1 + (n-2)*abs(inc_y))
- * \param inc_y     Increment for the elements of y
- * \param c         Cosine part of the Givens rotation
- * \param s         Sine part of the Givens rotation
+ * \param[in] n         Number of elements in x and y
+ * \param[in,out] x     Array of dimension at least (1 + (n-1)*abs(inc_x))
+ * \param[in] inc_x     Increment (stride) for the elements of x
+ * \param[in,out] y     Array of dimension at least (1 + (n-2)*abs(inc_y))
+ * \param[in] inc_y     Increment (stride) for the elements of y
+ * \param[in] c         Cosine part of the Givens rotation
+ * \param[in] s         Sine part of the Givens rotation
  */
 void
 sp_blas_srot(
     const len_t n,
-    float_t *x,
+    float_t * const x,
     const inc_t inc_x,
-    float_t *y,
+    float_t * const y,
     const inc_t inc_y,
     const float_t c,
     const float_t s)
@@ -178,15 +197,16 @@ sp_blas_srot(
 void
 sp_blas_sswap(
     const len_t n,
-    float_t *x,
+    float_t * const x,
     const inc_t inc_x,
-    float_t *y,
+    float_t * const y,
     const inc_t inc_y)
 {
     float_t tmp;
 
-    if (n <= 0)
+    if (n <= 0) {
         return;
+    }
 
     if (inc_x == 1 && inc_y == 1) {
         for (len_t i = 0; i < n; i++) {
@@ -212,13 +232,14 @@ sp_blas_sswap(
 void
 sp_blas_scopy(
     const len_t n,
-    const float_t *x,
+    const float_t * const x,
     const inc_t inc_x,
-    float_t *y,
+    float_t * const y,
     const inc_t inc_y)
 {
-    if (n <= 0)
+    if (n <= 0) {
         return;
+    }
 
     if (inc_x == 1 && inc_y == 1) {
         for (len_t i = 0; i < n; i++) {
@@ -240,9 +261,9 @@ sp_blas_scopy(
 float_t
 sp_blas_sdot(
     const len_t n,
-    const float_t *x,
+    const float_t * const x,
     const inc_t inc_x,
-    const float_t *y,
+    const float_t * const y,
     const inc_t inc_y)
 {
     if (n <= 0)
@@ -272,9 +293,9 @@ float_t
 sp_blas_sdsdot(
     const len_t n,
     const float_t sb,
-    const float_t *x,
+    const float_t * const x,
     const inc_t inc_x,
-    const float_t *y,
+    const float_t * const y,
     const inc_t inc_y)
 {
     double_t tmp = (double_t)sb;
@@ -304,7 +325,7 @@ sp_blas_sdsdot(
 float_t
 sp_blas_snrm2(
     const len_t n,
-    const float_t *x,
+    const float_t * const x,
     const inc_t inc_x)
 {
     if (n < 1 || inc_x < 1) {
@@ -337,9 +358,9 @@ sp_blas_snrm2(
 void
 sp_blas_srotm(
     const len_t n,
-    float_t *x,
+    float_t * const x,
     const inc_t inc_x,
-    float_t *y,
+    float_t * const y,
     const inc_t inc_y,
     const float_t *p)
 {
@@ -440,9 +461,9 @@ sp_blas_srotm(
 
 void
 sp_blas_srotmg(
-    float_t *d1,
-    float_t *d2,
-    float_t *x,
+    float_t * const d1,
+    float_t * const d2,
+    float_t * const x,
     const float_t y,
     float_t *p)
 {
@@ -579,7 +600,7 @@ void
 sp_blas_sscal(
     const len_t n,
     const float_t alpha,
-    float_t *x,
+    float_t * const x,
     const inc_t inc_x)
 {
     if (n <= 0 || inc_x <= 0)
@@ -600,7 +621,7 @@ sp_blas_sscal(
 len_t
 sp_blas_isamax(
     const len_t n,
-    const float_t *x,
+    const float_t * const x,
     const inc_t inc_x)
 {
     if (n <= 1)
@@ -639,7 +660,7 @@ sp_blas_isamax(
 len_t
 sp_blas_isamin(
     const len_t n,
-    const float_t *x,
+    const float_t * const x,
     const inc_t inc_x)
 {
     if (n <= 1)
