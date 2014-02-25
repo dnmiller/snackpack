@@ -509,68 +509,127 @@ sp_blas_srotm(
  *
  * The modified Givens rotation reduces the number of floating-point
  * operations and removes the square-root necessary to produce the plane
- * rotation. Suppose that \f$ X \f$ is available as a factored matrix
+ * rotation by traditional means.
+ *
+ * Suppose that \f$ X \f$ is available as a factored matrix
  *
  * \f[
- *      X = D^{1/2} X' =
+ *      X = D^{1/2} \bar X =
  *      \begin{bmatrix}
  *      d_1^{1/2} & 0 \\ 0 & d_2^{1/2}
  *      \end{bmatrix}
  *      \begin{bmatrix}
- *      x'_1 & x'_2 & \cdots & x'_n \\ y'_1 & y'_2 & \cdots & y'_n
+ *      \bar x_1 & \bar x_2 & \cdots & \bar x_n \\
+ *      \bar y_1 & \bar y_2 & \cdots & \bar y_n
  *      \end{bmatrix}
  * \f]
  *
- * Substituting for \f$ X \f$ in \f$ G X \f$ and refactoring
- * \f$ G D^{1/2} \f$ as \f$ \bar D^{1/2} H \f$ results in
+ * where \f$ d_1 \f$ and \f$ d_2 \f$ are yet to be determined. Substituting
+ * for \f$ X \f$ in \f$ G X \f$ and refactoring \f$ G D^{1/2} \f$ as
+ * \f$ \bar D^{1/2} H \f$ results in
  *
  * \f[
- *      GX = G D^{1/2} X' = \bar D^{1/2} H X' =
+ *      GX = G D^{1/2} \bar X = \bar D^{1/2} H \bar X =
  *      \begin{bmatrix}
  *      \bar d_1^{1/2} & 0 \\ 0 & \bar d_2^{1/2}
  *      \end{bmatrix}
  *      \begin{bmatrix}
  *      h_{11} & h_{12} \\ h_{21} & h_{22}
  *      \end{bmatrix}
- *      X'
+ *      \bar X
  * \f]
  *
  * The trick in the modified Givens approach is to choose \f$ d_1 \f$ and
  * \f$ d_2 \f$ such that two elements of \f$ H \f$ are exactly 1,
- * eliminating two multiplications for each column in \f$ X' \f$.
+ * eliminating two multiplications per column in \f$ \bar X \f$ when the
+ * rotation is applied.
  *
- * There are two cases to consider. First, if \f$ |s| < |c| \f$,
+ * We ignore the two cases where s or c is 0, since the rotation is trivial
+ * in these cases. The non-zero case is split into two separate cases for
+ * numerical precision issues. First, suppose \f$ |s| < |c| \f$. We can
+ * factor \f$ GD^{1/2} \f$ as
  *
- * \f{eqnarray*}{
- *      GD^{1/2} &=&
+ * \f{eqnarray*}
+ *      GD^{1/2} =
  *      \begin{bmatrix}
  *      d_1^{1/2} c & d_2^{1/2} s \\ -d_1^{1/2} s & d_2^{1/2} c
- *      \end{bmatrix} =
+ *      \end{bmatrix} &=&
  *      \begin{bmatrix}
  *      d_1^{1/2} c & 0 \\ 0 & d_2^{1/2} c
  *      \end{bmatrix}
  *      \begin{bmatrix}
  *      1 & (s/c)(d_2/d_1)^{1/2} \\ -(s/c)(d_1/d_2)^{1/2} & 1
  *      \end{bmatrix} \\
- *      &=& \begin{bmatrix}
- *      \bar d_1^{1/2} & 0 \\ 0 & \bar d_2^{1/2}
- *      \end{bmatrix}
- *      \begin{bmatrix}
- *      1 & d_2 y_1 / d_1 x'_1 \\ -y'_1 / x'_1 & 1
- *      \end{bmatrix} \\
- *      &=& \bar D^{1/2} H
+ *      &=&
+ *      \bar D^{1/2} H
  * \f}
  *
- * Multiplication on the right by the first column of \f$ X' \f$ results in
+ * Because \f$ s/c = y_1 / x_1 \f$, we have
+ * \f$ x_1 = d_1^{1/2} \bar x_1 \f$ and \f$ y_1 = d_2^{1/2} \bar y_1 \f$,
+ * and so
  *
  * \f[
  *      \bar D^{1/2} H =
  *      \begin{bmatrix}
- *      x_1' + d_2 {y'_1}^2 / d_1 x_1 \\ 0
+ *      \bar d_1^{1/2} & 0 \\ 0 & \bar d_2^{1/2}
+ *      \end{bmatrix}
+ *      \begin{bmatrix}
+ *      1 & d_2 \bar y_1 / d_1 \bar x_1 \\ -\bar y_1 / \bar x_1 & 1
  *      \end{bmatrix}
  * \f]
  *
- * thus creating a zero in \f$ X' \f$ - the scaled version of \f$ X \f$.
+ * where \f$ \bar d_1^{1/2} = d_1^{1/2} c \f$ and
+ * \f$ \bar d_2^{1/2} = d_2^{1/2} c \f$.
+ * Notice that multiplication on the right by the first column of
+ * \f$ \bar X \f$ results in
+ *
+ * \f[
+ *      \bar D^{1/2} H
+ *      \begin{bmatrix}
+ *      \bar x_1 \\ \bar y_1
+ *      \end{bmatrix} =
+ *      \begin{bmatrix}
+ *      \bar x_1 + d_2 {\bar y_1}^2 / d_1 \bar x_1 \\ 0
+ *      \end{bmatrix}
+ * \f]
+ *
+ * indeed creating the expected zero in \f$ \bar X \f$. Thus for some chosen
+ * \f$ d_1 \f$ and \f$ d_2 \f$, we can create a plane rotation to rotate the
+ * first column of \f$ \bar X \f$, and since \f$ \bar X \f$ is just
+ * \f$ X \f$ scaled, we have also created a zero in \f$ X \f$.
+ *
+ * Now suppose \f$ |s| \geq |c| \f$. We can similarly factor \f$ GD^{1/2} \f$
+ * as
+ *
+ * \f{eqnarray*}
+ *      GD^{1/2} =
+ *      \begin{bmatrix}
+ *      d_1^{1/2} c & d_2^{1/2} s \\ -d_1^{1/2} s & d_2^{1/2} c
+ *      \end{bmatrix} &=&
+ *      \begin{bmatrix}
+ *      d_2^{1/2} s & 0 \\ 0 & d_1^{1/2} s
+ *      \end{bmatrix}
+ *      \begin{bmatrix}
+ *      (c / s) (d_1^{1/2} / d_2^{1/2}) & 1 \\
+ *      -1 & (c / s) (d_2^{1/2} / d_1^{1/2} )
+ *      \end{bmatrix} \\
+ *      &=&
+ *      \begin{bmatrix}
+ *      \bar d_1^{1/2} s & 0 \\ 0 & \bar d_2^{1/2} s
+ *      \end{bmatrix}
+ *      \begin{bmatrix}
+ *      d_1 \bar x_1 / d_2 \bar y_1 & 1 \\
+ *      -1 & \bar x_1 / \bar y_1
+ *      \end{bmatrix} \\
+ *      &=&
+ *      \bar D^{1/2} H
+ * \f}
+ *
+ * Finally, we must calculate \f$ \bar d_1 \f$ and \f$ \bar d_2 \f$ without
+ * explicitly computing \f$ |s| \f$ or \f$ |c| \f$.
+ *
+ * This function is a huge mess and doesn't appear to be used by any
+ * higher-level BLAS/LAPACK functions, so this may never be finished...
  */
 void
 sp_blas_srotmg(
@@ -580,24 +639,36 @@ sp_blas_srotmg(
     const float_t y,
     float_t * const p)
 {
-    const float_t GAMMA = 4096.0f;
+    /* These magic numbers appear to date from the 70s (well before
+     * IEEE-754) and GAMMA can possibly be made much larger on modern
+     * machines. 2^12 suggest half-precision, but I could be wrong...
+     */
+    const float_t GAMMA = 4096.0f;  /* 2^12 */
     const float_t R_GAMMA_SQ = 5.96046e-8f;
     const float_t GAMMA_SQ = 1.67772e7f;
     int_fast8_t flag;
 
     float_t h11, h12, h21, h22;
-    float_t p1, p2, q1, q2, u;
+    float_t p1, q1, q2, u;
 
-    /* Line 120 */
     if (*d1 < 0.0f) {
-        flag = -1;
+        /* This condition (eventually) prevents divide by zero when dividing
+         * by u.
+         */
+        p[0] = -1.0f;
         h11 = h12 = h21 = h22 = *d1 = *d2 = *x = 0.0f;
     } else {
         /* Line 132 */
-        p2 = *d2 * y;
+        float_t p2 = *d2 * y;
         if (p2 == 0.0f) {
-            flag = -2;
+            /* In this case, we're already parallel to the x-axis in the
+             * plane and there's nothing to rotate. (what about d2 = 0?)
+             */
             p[0] = -2.0f;
+            /* Stuff identity in H. (Not done in reference implementation).
+             */
+            p[1] = p[3] = 1.0f;
+            p[2] = p[4] = 0.0f;
             return;
         }
         /* Line 140 */
