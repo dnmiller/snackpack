@@ -106,10 +106,10 @@ sp_blas_srotmg(
 
 void
 sp_blas_sscal(
-    const len_t n,
-    const float_t alpha,
+    len_t n,
+    float_t alpha,
     float_t * const x,
-    const inc_t inc_x);
+    inc_t inc_x);
 
 
 len_t

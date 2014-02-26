@@ -1,6 +1,7 @@
 #include <float.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "snackpack/blas1_real.h"
 
@@ -779,24 +780,48 @@ sp_blas_srotmg(
 }
 
 
+/**
+ * Scale the contents of a vector.
+ *
+ * For a vector \f$x\f$ and a scalar \f$ \alpha \f$, this computes the
+ * scalar-vector product \f$\alpha x\f$ and stores the result in \f$x\f$.
+ *
+ * \param[in] n         Length of the vector
+ * \param[in] alpha     Scalar to apply
+ * \param[in,out] x     Vector to scale
+ * \param[in] inc_x     Increment (stride) of x vector.
+ *
+ * If inc_x is negative, then iteration is backwards starting with element
+ * (1 - n) * inc_x. For example, n = 5 and inc_x = -2 would iterate over
+ * x[8], x[6], x[4], x[2], x[0].
+ *
+ * Note: The reference implementation does not support negative increments.
+ * It is added here because the operation is used higher level BLAS
+ * functions.
+ */
 void
 sp_blas_sscal(
-    const len_t n,
-    const float_t alpha,
+    len_t n,
+    float_t alpha,
     float_t * const x,
-    const inc_t inc_x)
+    inc_t inc_x)
 {
-    if (n <= 0 || inc_x <= 0) {
+    if (n <= 0 || inc_x == 0) {
+        // TODO: Log bad dimensions.
         return;
     }
 
-    if (inc_x == 1) {
+    if (alpha == 0.0f) {
+        memset(x, 0, sizeof(float_t) * n);
+    } else if (inc_x == 1) {
         for (len_t i = 0; i < n; i++) {
             x[i] *= alpha;
         }
     } else {
-        for (len_t i = 0; i < n * inc_x; i += inc_x) {
-            x[i] *= alpha;
+        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+        for (len_t i = 0; i < n; i++) {
+            x[ix] *= alpha;
+            ix += inc_x;
         }
     }
 }
