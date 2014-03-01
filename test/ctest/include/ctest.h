@@ -1,15 +1,20 @@
 #ifndef _CTEST_H_
 #define _CTEST_H_
 
+#include <stdbool.h>
+#include <stdio.h>
 
-void
-ctest_log_result(
-    long double err,
-    long double tol,
-    const char *func);
 
-int
-ctest_end_test(void);
+#ifndef ct_log
+/** Function used for all logging output. */
+#define ct_log(...) printf(__VA_ARGS__)
+#endif
+
+
+#ifndef MAX_ERROR_RECORDS
+/** Maximum number of errors allowed to be recorded. */
+#define MAX_ERROR_RECORDS (10000)
+#endif
 
 
 void
@@ -27,10 +32,26 @@ ct_assert_eq(
     const char *msg);
 
 
-extern bool exit_on_fail;
+void
+ct_log_result(
+    long double err,
+    long double tol,
+    const char *func);
 
 
-#define ctest_log(...) printf(__VA_ARGS__)
+void
+ct_print_errors(void);
+
+
+void
+ct_record_error(
+    long double error,
+    const char *test_name);
+
+
+extern bool ct_exit_on_fail;
+extern bool ct_log_verbose;
+extern bool ct_log_numeric_error;
 
 
 #endif
