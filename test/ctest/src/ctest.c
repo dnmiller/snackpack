@@ -124,7 +124,7 @@ typedef struct {
 } ct_error_record;
 
 static unsigned long num_records = 0;
-static ct_error_record records[MAX_ERROR_RECORDS];
+static ct_error_record records[CT_MAX_ERROR_RECORDS];
 
 static int
 compare_errors(
@@ -146,7 +146,7 @@ ct_record_error(
     long double error,
     const char *test_name)
 {
-    if (num_records == MAX_ERROR_RECORDS) {
+    if (num_records == CT_MAX_ERROR_RECORDS) {
         ct_log("Cannot record test error for %s, max records reached.\n",
                   test_name);
         return;

@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 
-# Compiler flags for the standard build should be placed here.
-set(CMAKE_C_FLAGS "-Weverything -Wall -Wextra -O3")
-
 set(PROJECT_NAME snackpack)
 project(${PROJECT_NAME})
 
@@ -21,16 +18,14 @@ set(PROJECT_SOURCES
     blas1_real.c
 )
 
-# Local header files are placed in the include directory.
+# Local header files
 include_directories(include)
 
-# The add_subdirectory commands should be last.
-
-# Project source files should be placed in the src subdirectory.
+# Project source files
 add_subdirectory(src)
-
-# Test source files should be placed in the test subdirectory.
-add_subdirectory(test)
 
 # Python / Matlab interfaces
 add_subdirectory(interface)
+
+# Test source files
+add_subdirectory(test)

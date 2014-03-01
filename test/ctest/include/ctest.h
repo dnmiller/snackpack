@@ -11,9 +11,9 @@
 #endif
 
 
-#ifndef MAX_ERROR_RECORDS
+#ifndef CT_MAX_ERROR_RECORDS
 /** Maximum number of errors allowed to be recorded. */
-#define MAX_ERROR_RECORDS (10000)
+#define CT_MAX_ERROR_RECORDS (10000)
 #endif
 
 
