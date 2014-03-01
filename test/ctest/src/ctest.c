@@ -50,6 +50,18 @@ ct_log_result(
 
 
 void
+ct_assert(
+    bool cond,
+    const char *test_name)
+{
+    if (!cond) {
+        ct_log("Test failed: %s\n", test_name);
+        result = -1;
+    }
+}
+
+
+void
 ct_assert_eq(
     long double expected,
     long double actual,

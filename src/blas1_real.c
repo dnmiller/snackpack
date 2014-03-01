@@ -1,15 +1,16 @@
 #include <float.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "snackpack/blas1_real.h"
+#include "snackpack/logger.h"
 
 
-/*
- * General TODO:
- * - Add logging functions for dumb function arguments.
- */
+#define NOT_VALID_DIM(x)  \
+    ((x) <= 0 ? !log_error(SP_ERROR_INVALID_DIM) : \
+        ((x) > SP_MAX_DIMENSION ? !log_error(SP_ERROR_DIM_TOO_LARGE) : 0))
 
 
 /**
@@ -27,7 +28,10 @@ sp_blas_sasum(
     const float_t * const x,
     const inc_t inc_x)
 {
-    if (n <= 0 || inc_x <= 0) {
+    if (NOT_VALID_DIM(n)) { return 0.0f; }
+
+    if (inc_x <= 0) {
+        log_error(SP_ERROR_INVALID_DIM);
         return 0.0f;
     }
 
@@ -70,9 +74,7 @@ sp_blas_saxpy(
     float_t * const y,
     const inc_t inc_y)
 {
-    if (n <= 0 || alpha == 0.0f) {
-        return;
-    }
+    if (NOT_VALID_DIM(n) || alpha == 0.0f) { return; }
 
     if (inc_x == 1 && inc_y == 1) {
         for (len_t i = 0; i < n; i++) {
@@ -171,8 +173,7 @@ sp_blas_srot(
 {
     float_t tmp;
 
-    if (n <= 0)
-        return;
+    if (NOT_VALID_DIM(n)) { return; }
 
     if (inc_x == 1 && inc_y == 1) {
         for (len_t i = 0; i < n; i++) {
@@ -206,11 +207,9 @@ sp_blas_sswap(
     float_t * const y,
     const inc_t inc_y)
 {
-    float_t tmp;
+    if (NOT_VALID_DIM(n)) { return; }
 
-    if (n <= 0) {
-        return;
-    }
+    float_t tmp;
 
     if (inc_x == 1 && inc_y == 1) {
         for (len_t i = 0; i < n; i++) {
@@ -244,9 +243,7 @@ sp_blas_scopy(
     float_t * const y,
     const inc_t inc_y)
 {
-    if (n <= 0) {
-        return;
-    }
+    if (NOT_VALID_DIM(n)) { return; }
 
     if (inc_x == 1 && inc_y == 1) {
         for (len_t i = 0; i < n; i++) {
@@ -270,14 +267,13 @@ sp_blas_scopy(
  */
 float_t
 sp_blas_sdot(
-    const len_t n,
+    len_t n,
     const float_t * const x,
-    const inc_t inc_x,
+    inc_t inc_x,
     const float_t * const y,
-    const inc_t inc_y)
+    inc_t inc_y)
 {
-    if (n <= 0)
-        return 0.0f;
+    if (NOT_VALID_DIM(n)) { return 0.0f; }
 
     float_t tmp = 0.0f;
     if (inc_x == 1 && inc_y == 1) {
@@ -345,7 +341,9 @@ sp_blas_snrm2(
     const float_t * const x,
     const inc_t inc_x)
 {
-    if (n < 1 || inc_x < 1) {
+    if (NOT_VALID_DIM(n)) { return 0.0f; }
+
+    if (inc_x < 1) {
         return 0.0f;
     } else if (n == 1) {
         return fabsf(*x);
@@ -385,10 +383,9 @@ sp_blas_srotm(
     const inc_t inc_y,
     const float_t *p)
 {
-    int_fast8_t flag = (int_fast8_t)p[0];
+    if (NOT_VALID_DIM(n)) { return; }
 
-    if (n <= 0)
-        return;
+    int_fast8_t flag = (int_fast8_t)p[0];
 
     float_t h11, h12, h21, h22;
     float_t w, z;
@@ -480,6 +477,7 @@ sp_blas_srotm(
 }
 
 
+// TODO: Move this gibberish to a new file
 /**
  * Generate a modified Givens rotation.
  *
@@ -797,7 +795,7 @@ sp_blas_srotmg(
  *
  * Note: The reference implementation does not support negative increments.
  * It is added here because the operation is used higher level BLAS
- * functions.
+ * functions. (Netlib just re-implements it.)
  */
 void
 sp_blas_sscal(
@@ -806,6 +804,8 @@ sp_blas_sscal(
     float_t * const x,
     inc_t inc_x)
 {
+    if (NOT_VALID_DIM(n)) { return; }
+
     if (n <= 0 || inc_x == 0) {
         // TODO: Log bad dimensions.
         return;
@@ -833,9 +833,7 @@ sp_blas_isamax(
     const float_t * const x,
     const inc_t inc_x)
 {
-    if (n <= 1) {
-        return 0;
-    }
+    if (NOT_VALID_DIM(n) || n == 1) { return 0; }
 
     if (inc_x == 1) {
         len_t imax = 0;
@@ -873,9 +871,7 @@ sp_blas_isamin(
     const float_t * const x,
     const inc_t inc_x)
 {
-    if (n <= 1) {
-        return 0;
-    }
+    if (NOT_VALID_DIM(n) || n == 1) { return 0; }
 
     if (inc_x == 1) {
         len_t imin = 0;

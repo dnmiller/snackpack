@@ -18,18 +18,24 @@
 
 
 void
+ct_assert(
+    bool cond,
+    const char *test_name);
+
+
+void
 ct_assert_almost_eq(
     long double expected,
     long double actual,
     long double tolerance,
-    const char *msg);
+    const char *test_name);
 
 
 void
 ct_assert_eq(
     long double expected,
     long double actual,
-    const char *msg);
+    const char *test_name);
 
 
 void
