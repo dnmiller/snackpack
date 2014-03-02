@@ -72,8 +72,8 @@ ct_assert_eq(
         ct_log("\n"
             "Test failed: %s\n"
             "-----------\n"
-            "    Expected: %Le\n"
-            "    Actual:   %Le\n", test_name, expected, actual);
+            "    Expected: %.12Le\n"
+            "    Actual:   %.12Le\n", test_name, expected, actual);
         long double err = expected > actual ?
                           expected - actual : actual - expected;
         if (ct_log_numeric_error) {
