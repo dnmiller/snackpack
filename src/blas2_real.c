@@ -27,10 +27,10 @@ sp_blas_sgemv(
     const float_t * const a,
     len_t lda,
     const float_t * const x,
-    inc_t inc_x,
+    len_t inc_x,
     float_t beta,
     float_t * const y,
-    inc_t inc_y)
+    len_t inc_y)
 {
     if (alpha == 0.0f && beta == 0.0f) {
         return;

@@ -24,9 +24,9 @@
  */
 float_t
 sp_blas_sasum(
-    const len_t n,
+    len_t n,
     const float_t * const x,
-    const inc_t inc_x)
+    len_t inc_x)
 {
     if (NOT_VALID_DIM(n)) { return 0.0f; }
 
@@ -67,12 +67,12 @@ sp_blas_sasum(
  */
 void
 sp_blas_saxpy(
-    const len_t n,
-    const float_t alpha,
+    len_t n,
+    float_t alpha,
     const float_t * const x,
-    const inc_t inc_x,
+    len_t inc_x,
     float_t * const y,
-    const inc_t inc_y)
+    len_t inc_y)
 {
     if (NOT_VALID_DIM(n) || alpha == 0.0f) { return; }
 
@@ -163,13 +163,13 @@ sp_blas_srotg(
  */
 void
 sp_blas_srot(
-    const len_t n,
+    len_t n,
     float_t * const x,
-    const inc_t inc_x,
+    len_t inc_x,
     float_t * const y,
-    const inc_t inc_y,
-    const float_t c,
-    const float_t s)
+    len_t inc_y,
+    float_t c,
+    float_t s)
 {
     float_t tmp;
 
@@ -201,11 +201,11 @@ sp_blas_srot(
  */
 void
 sp_blas_sswap(
-    const len_t n,
+    len_t n,
     float_t * const x,
-    const inc_t inc_x,
+    len_t inc_x,
     float_t * const y,
-    const inc_t inc_y)
+    len_t inc_y)
 {
     if (NOT_VALID_DIM(n)) { return; }
 
@@ -237,11 +237,11 @@ sp_blas_sswap(
  */
 void
 sp_blas_scopy(
-    const len_t n,
+    len_t n,
     const float_t * const x,
-    const inc_t inc_x,
+    len_t inc_x,
     float_t * const y,
-    const inc_t inc_y)
+    len_t inc_y)
 {
     if (NOT_VALID_DIM(n)) { return; }
 
@@ -269,9 +269,9 @@ float_t
 sp_blas_sdot(
     len_t n,
     const float_t * const x,
-    inc_t inc_x,
+    len_t inc_x,
     const float_t * const y,
-    inc_t inc_y)
+    len_t inc_y)
 {
     if (NOT_VALID_DIM(n)) { return 0.0f; }
 
@@ -301,12 +301,12 @@ sp_blas_sdot(
  */
 float_t
 sp_blas_sdsdot(
-    const len_t n,
-    const float_t sb,
+    len_t n,
+    float_t sb,
     const float_t * const x,
-    const inc_t inc_x,
+    len_t inc_x,
     const float_t * const y,
-    const inc_t inc_y)
+    len_t inc_y)
 {
     double_t tmp = (double_t)sb;
 
@@ -337,9 +337,9 @@ sp_blas_sdsdot(
  */
 float_t
 sp_blas_snrm2(
-    const len_t n,
+    len_t n,
     const float_t * const x,
-    const inc_t inc_x)
+    len_t inc_x)
 {
     if (NOT_VALID_DIM(n)) { return 0.0f; }
 
@@ -377,12 +377,12 @@ sp_blas_snrm2(
  */
 void
 sp_blas_srotm(
-    const len_t n,
+    len_t n,
     float_t * const x,
-    const inc_t inc_x,
+    len_t inc_x,
     float_t * const y,
-    const inc_t inc_y,
-    const float_t *p)
+    len_t inc_y,
+    const float_t * const p)
 {
     if (NOT_VALID_DIM(n)) { return; }
 
@@ -636,7 +636,7 @@ sp_blas_srotmg(
     float_t * const d1,
     float_t * const d2,
     float_t * const x,
-    const float_t y,
+    float_t y,
     float_t * const p)
 {
     /* These magic numbers appear to date from the 70s (well before
@@ -803,7 +803,7 @@ sp_blas_sscal(
     len_t n,
     float_t alpha,
     float_t * const x,
-    inc_t inc_x)
+    len_t inc_x)
 {
     if (NOT_VALID_DIM(n)) { return; }
 
@@ -830,9 +830,9 @@ sp_blas_sscal(
 
 len_t
 sp_blas_isamax(
-    const len_t n,
+    len_t n,
     const float_t * const x,
-    const inc_t inc_x)
+    len_t inc_x)
 {
     if (NOT_VALID_DIM(n) || n == 1) { return 0; }
 
@@ -868,9 +868,9 @@ sp_blas_isamax(
 
 len_t
 sp_blas_isamin(
-    const len_t n,
+    len_t n,
     const float_t * const x,
-    const inc_t inc_x)
+    len_t inc_x)
 {
     if (NOT_VALID_DIM(n) || n == 1) { return 0; }
 

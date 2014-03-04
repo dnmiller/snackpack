@@ -68,7 +68,7 @@ test_sasum(void)
     ct_assert_int_eq(sp_errors_logged(), err_count, "Zero inc error log");
 
     /* TODO: Test negative increments. */
-    for (inc_t inc_x = 1; inc_x < 3; inc_x++) {
+    for (len_t inc_x = 1; inc_x < 3; inc_x++) {
         for (len_t n = 0; n < TEST_DATA_COLS; n++) {
             for (len_t k = 0; k < TEST_DATA_ROWS; k++) {
                 test_vec[k] = TEST_DATA[inc_x - 1][k][n];
@@ -113,7 +113,7 @@ test_snrm2(void)
     ct_assert_int_eq(sp_errors_logged(), err_count, "Zero inc error log");
 
     /* TODO: Test negative increments. */
-    for (inc_t inc_x = 1; inc_x < 3; inc_x++) {
+    for (len_t inc_x = 1; inc_x < 3; inc_x++) {
         for (len_t n = 0; n < TEST_DATA_COLS; n++) {
             for (len_t k = 0; k < TEST_DATA_ROWS; k++) {
                 test_vec[k] = TEST_DATA[inc_x - 1][k][n];
