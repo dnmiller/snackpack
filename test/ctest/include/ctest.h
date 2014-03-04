@@ -39,6 +39,21 @@ ct_assert_eq(
 
 
 void
+ct_assert_float_eq(
+    float_t act,
+    float_t exp,
+    float_t fac,
+    const char *test_name);
+
+
+void
+ct_assert_int_eq(
+    unsigned int exp,
+    unsigned int act,
+    const char *test_name);
+
+
+void
 ct_log_result(
     long double err,
     long double tol,

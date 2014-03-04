@@ -7,7 +7,9 @@ extern const char *SP_ERROR_DESCR[];
 
 typedef enum {
 
-    SP_ERROR_INVALID_DIM = 0,
+    SP_NO_ERROR = 0,
+    SP_ERROR_INVALID_DIM,
+    SP_ERROR_INVALID_INC,
     SP_ERROR_NO_CONVERGENCE,
     SP_ERROR_DIM_TOO_LARGE,
     NUM_SP_ERROR
@@ -18,9 +20,14 @@ typedef enum {
 int
 sp_log_error(
     SP_ERROR code,
+    int arg,
     const char *file,
     int line,
     const char *func);
+
+
+SP_ERROR
+sp_last_error_logged(void);
 
 
 uint64_t

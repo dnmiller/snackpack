@@ -9,8 +9,8 @@
 
 
 #define NOT_VALID_DIM(x)  \
-    ((x) <= 0 ? !log_error(SP_ERROR_INVALID_DIM) : \
-        ((x) > SP_MAX_DIMENSION ? !log_error(SP_ERROR_DIM_TOO_LARGE) : 0))
+    ((x) <= 0 ? !log_error(SP_ERROR_INVALID_DIM, x) : \
+        ((x) > SP_MAX_DIMENSION ? !log_error(SP_ERROR_DIM_TOO_LARGE, x) : 0))
 
 
 /**
@@ -30,8 +30,8 @@ sp_blas_sasum(
 {
     if (NOT_VALID_DIM(n)) { return 0.0f; }
 
-    if (inc_x <= 0) {
-        log_error(SP_ERROR_INVALID_DIM);
+    if (inc_x == 0) {
+        log_error(SP_ERROR_INVALID_INC, inc_x);
         return 0.0f;
     }
 
@@ -343,9 +343,10 @@ sp_blas_snrm2(
 {
     if (NOT_VALID_DIM(n)) { return 0.0f; }
 
-    if (inc_x < 1) {
+    if (inc_x == 0) {
+        log_error(SP_ERROR_INVALID_INC, inc_x);
         return 0.0f;
-    } else if (n == 1) {
+    } else if (inc_x > 1 && n == 1) {
         return fabsf(*x);
     }
 

@@ -41,8 +41,8 @@ typedef enum {
 
 
 #ifndef log_error
-#define log_error(code) \
-    sp_log_error(code, __FILE__, __LINE__, __func__)
+#define log_error(code, arg) \
+    sp_log_error(code, arg, __FILE__, __LINE__, __func__)
 #endif
 
 

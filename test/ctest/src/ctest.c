@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <float.h>
+#include <math.h>
 #include "ctest.h"
 
 /**
@@ -56,7 +58,31 @@ ct_assert(
 {
     if (!cond) {
         ct_log("Test failed: %s\n", test_name);
-        result = -1;
+        if (ct_exit_on_fail) {
+            exit(-1);
+        }
+    }
+}
+
+
+void
+ct_assert_int_eq(
+    unsigned int exp,
+    unsigned int act,
+    const char *test_name)
+{
+    if (exp != act) {
+        fail_count++;
+        ct_log("\n"
+            "Test failed: %s\n"
+            "-----------\n"
+            "    Expected: %d\n"
+            "    Actual:   %d\n", test_name, exp, act);
+        if (ct_exit_on_fail) {
+            exit(-1);
+        }
+    } else {
+        ct_log(".");
     }
 }
 
@@ -81,6 +107,38 @@ ct_assert_eq(
         }
         if (ct_log_verbose) {
             ct_log_result(err, 0.0, test_name);
+        }
+        if (ct_exit_on_fail) {
+            exit(-1);
+        }
+    } else {
+        ct_log(".");
+    }
+}
+
+
+void
+ct_assert_float_eq(
+    float_t act,
+    float_t exp,
+    float_t fac,
+    const char *test_name)
+{
+    float_t err = act - exp;
+    float_t abs_exp = fabsf(exp);
+    if ((abs_exp + fabsf(fac * err)) - abs_exp) {
+        fail_count++;
+        ct_log("\n"
+            "Test failed: %s\n"
+            "-----------\n"
+            "    Expected: %.12Le\n"
+            "    Actual:   %.12Le\n",
+            test_name, (long double)exp, (long double)act);
+        if (ct_log_numeric_error) {
+            ct_record_error(err, test_name);
+        }
+        if (ct_log_verbose) {
+            ct_log_result(err, fac, test_name);
         }
         if (ct_exit_on_fail) {
             exit(-1);
