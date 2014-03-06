@@ -181,6 +181,31 @@ ct_assert_almost_eq(
 }
 
 
+
+void
+ct_assert_last_error(
+    SP_ERROR error,
+    const char *test_name)
+{
+    SP_ERROR act = sp_error_last();
+    if (act != error) {
+        fail_count++;
+        ct_log("\n"
+            "Test failed: %s\n"
+            "-----------\n"
+            "    Expected error: %d\n"
+            "    Actual error:   %d\n", test_name, error, act);
+        if (ct_exit_on_fail) {
+            exit(-1);
+        }
+    } else {
+        ct_log(".");
+    }
+}
+
+
+
+
 /* Record for numerical error.
  *
  * This is a trivial little system for logging test results. All results are

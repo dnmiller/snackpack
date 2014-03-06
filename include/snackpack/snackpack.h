@@ -9,15 +9,15 @@
 #endif
 
 
-typedef int_fast16_t    len_t;
+typedef int_fast16_t len_t;
 
 
 typedef enum {
 
-    SP_TRI_UPLO_UPPER,
-    SP_TRI_UPLO_LOWER
+    SP_TRI_UPPER,
+    SP_TRI_LOWER
 
-} SP_UPLO_TRI;
+} SP_TRI_TYPE;
 
 
 typedef enum {
@@ -29,10 +29,12 @@ typedef enum {
 } SP_TRANS;
 
 
-#ifndef log_error
-#define log_error(code, arg) \
-    sp_log_error(code, arg, __FILE__, __LINE__, __func__)
-#endif
+typedef enum {
+
+    SP_UNIT_YES,
+    SP_UNIT_NO
+
+} SP_UNIT;
 
 
 #endif

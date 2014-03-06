@@ -1,8 +1,8 @@
 #ifndef _CTEST_H_
 #define _CTEST_H_
-
 #include <stdbool.h>
 #include <stdio.h>
+#include "snackpack/error.h"
 
 
 #ifndef ct_log
@@ -50,6 +50,12 @@ void
 ct_assert_int_eq(
     unsigned int exp,
     unsigned int act,
+    const char *test_name);
+
+
+void
+ct_assert_last_error(
+    SP_ERROR error,
     const char *test_name);
 
 

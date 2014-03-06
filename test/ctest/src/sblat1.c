@@ -3,7 +3,7 @@
 
 #include "ctest.h"
 #include "snackpack/blas1_real.h"
-#include "snackpack/logger.h"
+#include "snackpack/error.h"
 
 
 static unsigned int err_count = 0;
@@ -52,20 +52,10 @@ test_sasum(void)
 
     /* Test for invalid dimensions */
     sp_blas_sasum(0, NULL, 1);
-    err_count++;
-    ct_assert_int_eq(
-        sp_last_error_logged(), SP_ERROR_INVALID_DIM,
-        "Zero vector dimension");
-    ct_assert_int_eq(
-        sp_errors_logged(), err_count, "Zero vector error log");
 
     /* Test for invalid increment */
     sp_blas_sasum(1, NULL, 0);
-    err_count++;
-    ct_assert_int_eq(
-        sp_last_error_logged(), SP_ERROR_INVALID_INC,
-        "Zero vector increment");
-    ct_assert_int_eq(sp_errors_logged(), err_count, "Zero inc error log");
+
 
     /* TODO: Test negative increments. */
     for (len_t inc_x = 1; inc_x < 3; inc_x++) {
@@ -76,10 +66,6 @@ test_sasum(void)
             len_t len = 2 * (n < 1 ? 1 : n);
             float_t exp = SASUM_RESULT[n];
             float_t act = sp_blas_sasum(n, test_vec, inc_x);
-            if (n == 0.0f) {
-                err_count++;
-            }
-            ct_assert_int_eq(err_count, sp_errors_logged(), "Error count");
             ct_assert_float_eq(act, exp, SASUM_FAC, "sasum error check");
         }
     }
@@ -97,20 +83,11 @@ test_snrm2(void)
 
     /* Test for invalid dimensions */
     sp_blas_snrm2(0, NULL, 1);
-    err_count++;
-    ct_assert_int_eq(
-        sp_last_error_logged(), SP_ERROR_INVALID_DIM,
-        "Zero vector dimension");
-    ct_assert_int_eq(
-        sp_errors_logged(), err_count, "Zero vector error log");
+    ct_assert_last_error(SP_ERROR_INVALID_DIM, "snrm2: zero dim");
 
     /* Test for invalid increment */
     sp_blas_snrm2(1, NULL, 0);
-    err_count++;
-    ct_assert_int_eq(
-        sp_last_error_logged(), SP_ERROR_INVALID_INC,
-        "Zero vector increment");
-    ct_assert_int_eq(sp_errors_logged(), err_count, "Zero inc error log");
+    ct_assert_last_error(SP_ERROR_INVALID_INC, "snrm2: zero inc");
 
     /* TODO: Test negative increments. */
     for (len_t inc_x = 1; inc_x < 3; inc_x++) {
@@ -121,10 +98,6 @@ test_snrm2(void)
             len_t len = 2 * (n < 1 ? 1 : n);
             float_t exp = SNRM2_RESULT[n];
             float_t act = sp_blas_snrm2(n, test_vec, inc_x);
-            if (n == 0.0f) {
-                err_count++;
-            }
-            ct_assert_int_eq(err_count, sp_errors_logged(), "Error count");
             ct_assert_float_eq(act, exp, SNRM2_FAC, "snrm2 error check");
         }
     }

@@ -5,20 +5,19 @@
 #include <string.h>
 
 #include "snackpack/blas1_real.h"
-#include "snackpack/logger.h"
+#include "snackpack/error.h"
 
 
-#define NOT_VALID_DIM(x)  \
-    ((x) <= 0 ? !log_error(SP_ERROR_INVALID_DIM, x) : \
-        ((x) > SP_MAX_DIMENSION ? !log_error(SP_ERROR_DIM_TOO_LARGE, x) : 0))
+const char  *error_file = NULL;
+unsigned int error_line = 0;
 
 
 /**
  * Return the sum of the absolute values of a vector (1-norm).
  *
- * \param [in] n        Number of elements add
- * \param [in] x        Pointer to the first element of the vector
- * \param [in] inc_x    Increment (stride) to sum over. Negative increments
+ * \param[in] n        Number of elements add
+ * \param[in] x        Pointer to the first element of the vector
+ * \param[in] inc_x    Increment (stride) to sum over. Negative increments
  *                      are not supported.
  * \returns             Sum of absolute values of the vector elements
  */
@@ -28,12 +27,8 @@ sp_blas_sasum(
     const float_t * const x,
     len_t inc_x)
 {
-    if (NOT_VALID_DIM(n)) { return 0.0f; }
-
-    if (inc_x == 0) {
-        log_error(SP_ERROR_INVALID_INC, inc_x);
-        return 0.0f;
-    }
+    SP_ASSERT_VALID_DIM(n);
+    SP_ASSERT_VALID_INC(inc_x);
 
     float_t tmp = 0.0f;
     if (inc_x == 1) {
@@ -47,6 +42,9 @@ sp_blas_sasum(
         }
     }
     return tmp;
+
+fail:
+    return 0.0f;
 }
 
 
@@ -74,7 +72,10 @@ sp_blas_saxpy(
     float_t * const y,
     len_t inc_y)
 {
-    if (NOT_VALID_DIM(n) || alpha == 0.0f) { return; }
+    if (alpha == 0.0f) {
+        /* Nothing to do */
+        return;
+    }
 
     if (inc_x == 1 && inc_y == 1) {
         for (len_t i = 0; i < n; i++) {
@@ -173,8 +174,6 @@ sp_blas_srot(
 {
     float_t tmp;
 
-    if (NOT_VALID_DIM(n)) { return; }
-
     if (inc_x == 1 && inc_y == 1) {
         for (len_t i = 0; i < n; i++) {
             tmp = c * x[i] + s * y[i];
@@ -207,8 +206,6 @@ sp_blas_sswap(
     float_t * const y,
     len_t inc_y)
 {
-    if (NOT_VALID_DIM(n)) { return; }
-
     float_t tmp;
 
     if (inc_x == 1 && inc_y == 1) {
@@ -243,8 +240,6 @@ sp_blas_scopy(
     float_t * const y,
     len_t inc_y)
 {
-    if (NOT_VALID_DIM(n)) { return; }
-
     if (inc_x == 1 && inc_y == 1) {
         for (len_t i = 0; i < n; i++) {
             y[i] = x[i];
@@ -273,8 +268,6 @@ sp_blas_sdot(
     const float_t * const y,
     len_t inc_y)
 {
-    if (NOT_VALID_DIM(n)) { return 0.0f; }
-
     float_t tmp = 0.0f;
     if (inc_x == 1 && inc_y == 1) {
         for (len_t i = 0; i < n; i++) {
@@ -341,12 +334,10 @@ sp_blas_snrm2(
     const float_t * const x,
     len_t inc_x)
 {
-    if (NOT_VALID_DIM(n)) { return 0.0f; }
+    SP_ASSERT_VALID_DIM(n);
+    SP_ASSERT_VALID_INC(inc_x);
 
-    if (inc_x == 0) {
-        log_error(SP_ERROR_INVALID_INC, inc_x);
-        return 0.0f;
-    } else if (inc_x > 1 && n == 1) {
+    if (inc_x > 1 && n == 1) {
         return fabsf(*x);
     }
 
@@ -369,6 +360,9 @@ sp_blas_snrm2(
         ix += inc_x;
     }
     return scale * sqrtf(sq);
+
+fail:
+    return 0.0f;
 }
 
 
@@ -384,8 +378,6 @@ sp_blas_srotm(
     len_t inc_y,
     const float_t * const p)
 {
-    if (NOT_VALID_DIM(n)) { return; }
-
     int_fast8_t flag = (int_fast8_t)p[0];
 
     float_t h11, h12, h21, h22;
@@ -805,13 +797,6 @@ sp_blas_sscal(
     float_t * const x,
     len_t inc_x)
 {
-    if (NOT_VALID_DIM(n)) { return; }
-
-    if (n <= 0 || inc_x == 0) {
-        // TODO: Log bad dimensions.
-        return;
-    }
-
     if (alpha == 0.0f) {
         memset(x, 0, sizeof(float_t) * n);
     } else if (inc_x == 1) {
@@ -834,8 +819,6 @@ sp_blas_isamax(
     const float_t * const x,
     len_t inc_x)
 {
-    if (NOT_VALID_DIM(n) || n == 1) { return 0; }
-
     if (inc_x == 1) {
         len_t imax = 0;
         float_t max = fabsf(x[imax]);
@@ -872,8 +855,6 @@ sp_blas_isamin(
     const float_t * const x,
     len_t inc_x)
 {
-    if (NOT_VALID_DIM(n) || n == 1) { return 0; }
-
     if (inc_x == 1) {
         len_t imin = 0;
         float_t min = fabsf(x[imin]);

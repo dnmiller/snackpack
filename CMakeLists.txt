@@ -16,7 +16,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 # subdirectory.
 set(PROJECT_SOURCES
     blas1_real.c
-    logger.c
+    error.c
 )
 
 # Local header files
