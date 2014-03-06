@@ -49,4 +49,24 @@ sp_blas_saxpy_incxy(
     len_t inc_y);
 
 
+void
+sp_blas_srot_inc1(
+    len_t n,
+    float * const x,
+    float * const y,
+    float c,
+    float s);
+
+
+void
+sp_blas_srot_incxy(
+    len_t n,
+    float * const x,
+    len_t inc_x,
+    float * const y,
+    len_t inc_y,
+    float c,
+    float s);
+
+
 #endif

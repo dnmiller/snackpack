@@ -70,19 +70,24 @@ fail:
 }
 
 
+/* saxpy for inc_x = inc_y = 1 */
 void
 sp_blas_saxpy_inc1(
     len_t n,
-    float_t alpha,
-    const float_t * const x,
-    float_t * const y)
+    float alpha,
+    const float * const x,
+    float * const y)
 {
-    for (len_t i = 0; i < n; i++) {
-        y[i] += alpha * x[i];
+    if (alpha != 0.0f) {
+        for (len_t i = 0; i < n; i++) {
+            y[i] += alpha * x[i];
+        }
     }
+    /* If alpha == 0, nothing to do */
 }
 
 
+/* saxpy for inc_x != 1 or inc_y != 1 */
 void
 sp_blas_saxpy_incxy(
     len_t n,
@@ -92,14 +97,17 @@ sp_blas_saxpy_incxy(
     float * const y,
     len_t inc_y)
 {
-    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-    len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
+    if (alpha != 0.0f) {
+        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
 
-    for (len_t i = 0; i < n; i++) {
-        y[iy] += alpha * x[ix];
-        ix += inc_x;
-        iy += inc_y;
+        for (len_t i = 0; i < n; i++) {
+            y[iy] += alpha * x[ix];
+            ix += inc_x;
+            iy += inc_y;
+        }
     }
+    /* If alpha == 0, nothing to do */
 }
 
 
@@ -131,11 +139,7 @@ sp_blas_saxpy(
     SP_ASSERT_VALID_INC(inc_x);
     SP_ASSERT_VALID_INC(inc_y);
 
-    if (alpha == 0.0f) {
-        /* Nothing to do */
-        return;
-    }
-    else if (inc_x == 1 && inc_y == 1) {
+    if (inc_x == 1 && inc_y == 1) {
         sp_blas_saxpy_inc1(n, alpha, x, y);
     } else {
         sp_blas_saxpy_incxy(n, alpha, x, inc_x, y, inc_y);
@@ -164,27 +168,27 @@ fail:
  */
 void
 sp_blas_srotg(
-    float_t * const a,
-    float_t * const b,
-    float_t * const c,
-    float_t * const s)
+    float * const a,
+    float * const b,
+    float * const c,
+    float * const s)
 {
     /* We do an actual comparison to zero here because the scaling should
      * prevent underflows.
      */
-    float_t scale = fabsf(*a) + fabsf(*b);
+    float scale = fabsf(*a) + fabsf(*b);
     if (scale == 0.0f) {
         *c = 1.0f;
         *s = 0.0f;
         *a = 0.0f;
         *b = 0.0f;
     } else {
-        float_t abs_a = fabsf(*a);
-        float_t abs_b = fabsf(*b);
-        float_t a_scale = *a/scale;
-        float_t b_scale = *b/scale;
+        float abs_a = fabsf(*a);
+        float abs_b = fabsf(*b);
+        float a_scale = *a / scale;
+        float b_scale = *b / scale;
 
-        float_t r = scale * sqrtf(a_scale*a_scale + b_scale*b_scale);
+        float r = scale * sqrtf(a_scale*a_scale + b_scale*b_scale);
         r = copysignf(r, abs_a > abs_b ? *a : *b);
 
         *c = *a/r;
@@ -203,6 +207,45 @@ sp_blas_srotg(
 }
 
 
+void
+sp_blas_srot_inc1(
+    len_t n,
+    float * const x,
+    float * const y,
+    float c,
+    float s)
+{
+    for (len_t i = 0; i < n; i++) {
+        float tmp = c * x[i] + s * y[i];
+        y[i] = c * y[i] - s * x[i];
+        x[i] = tmp;
+    }
+}
+
+
+void
+sp_blas_srot_incxy(
+    len_t n,
+    float * const x,
+    len_t inc_x,
+    float * const y,
+    len_t inc_y,
+    float c,
+    float s)
+{
+    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+    len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
+
+    for (len_t i = 0; i < n; i++) {
+        float tmp = c * x[ix] + s * y[iy];
+        y[iy] = c * y[iy] - s * x[ix];
+        x[ix] = tmp;
+        ix += inc_x;
+        iy += inc_y;
+    }
+}
+
+
 /**
  * Apply a plane rotation.
  *
@@ -217,33 +260,25 @@ sp_blas_srotg(
 void
 sp_blas_srot(
     len_t n,
-    float_t * const x,
+    float * const x,
     len_t inc_x,
-    float_t * const y,
+    float * const y,
     len_t inc_y,
-    float_t c,
-    float_t s)
+    float c,
+    float s)
 {
-    float_t tmp;
+    SP_ASSERT_VALID_DIM(n);
+    SP_ASSERT_VALID_INC(inc_x);
+    SP_ASSERT_VALID_INC(inc_y);
 
     if (inc_x == 1 && inc_y == 1) {
-        for (len_t i = 0; i < n; i++) {
-            tmp = c * x[i] + s * y[i];
-            y[i] = c * y[i] - s * x[i];
-            x[i] = tmp;
-        }
+        sp_blas_srot_inc1(n, x, y, c, s);
     } else {
-        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
-
-        for (len_t i = 0; i < n; i++) {
-            tmp = c * x[ix] + s * y[iy];
-            y[iy] = c * y[iy] - s * x[ix];
-            x[ix] = tmp;
-            ix += inc_x;
-            iy += inc_y;
-        }
+        sp_blas_srot_incxy(n, x, inc_x, y, inc_y, c, s);
     }
+
+fail:
+    return;
 }
 
 
@@ -253,12 +288,12 @@ sp_blas_srot(
 void
 sp_blas_sswap(
     len_t n,
-    float_t * const x,
+    float * const x,
     len_t inc_x,
-    float_t * const y,
+    float * const y,
     len_t inc_y)
 {
-    float_t tmp;
+    float tmp;
 
     if (inc_x == 1 && inc_y == 1) {
         for (len_t i = 0; i < n; i++) {
@@ -287,9 +322,9 @@ sp_blas_sswap(
 void
 sp_blas_scopy(
     len_t n,
-    const float_t * const x,
+    const float * const x,
     len_t inc_x,
-    float_t * const y,
+    float * const y,
     len_t inc_y)
 {
     if (inc_x == 1 && inc_y == 1) {
@@ -312,15 +347,15 @@ sp_blas_scopy(
 /**
  * Take the dot product of two vectors.
  */
-float_t
+float
 sp_blas_sdot(
     len_t n,
-    const float_t * const x,
+    const float * const x,
     len_t inc_x,
-    const float_t * const y,
+    const float * const y,
     len_t inc_y)
 {
-    float_t tmp = 0.0f;
+    float tmp = 0.0f;
     if (inc_x == 1 && inc_y == 1) {
         for (len_t i = 0; i < n; i++) {
             tmp += x[i] * y[i];
@@ -344,19 +379,19 @@ sp_blas_sdot(
  * Take the dot product of two single-precision vectors, doing the
  * accumulation in double precision.
  */
-float_t
+float
 sp_blas_sdsdot(
     len_t n,
-    float_t sb,
-    const float_t * const x,
+    float sb,
+    const float * const x,
     len_t inc_x,
-    const float_t * const y,
+    const float * const y,
     len_t inc_y)
 {
     double_t tmp = (double_t)sb;
 
     if (n <= 0)
-        return (float_t)tmp;
+        return (float)tmp;
 
     if (inc_x == 1 && inc_y == 1) {
         for (len_t i = 0; i < n; i++) {
@@ -373,7 +408,7 @@ sp_blas_sdsdot(
         }
     }
 
-    return (float_t)tmp;
+    return (float)tmp;
 }
 
 
@@ -470,16 +505,16 @@ fail:
 void
 sp_blas_srotm(
     len_t n,
-    float_t * const x,
+    float * const x,
     len_t inc_x,
-    float_t * const y,
+    float * const y,
     len_t inc_y,
-    const float_t * const p)
+    const float * const p)
 {
     int_fast8_t flag = (int_fast8_t)p[0];
 
-    float_t h11, h12, h21, h22;
-    float_t w, z;
+    float h11, h12, h21, h22;
+    float w, z;
 
     if (inc_x == inc_y && inc_x > 0) {
         len_t n_steps = n * (len_t)(inc_x);
@@ -723,23 +758,23 @@ sp_blas_srotm(
  */
 void
 sp_blas_srotmg(
-    float_t * const d1,
-    float_t * const d2,
-    float_t * const x,
-    float_t y,
-    float_t * const p)
+    float * const d1,
+    float * const d2,
+    float * const x,
+    float y,
+    float * const p)
 {
     /* These magic numbers appear to date from the 70s (well before
      * IEEE-754) and GAMMA can possibly be made much larger on modern
      * machines. 2^12 suggest half-precision, but I could be wrong...
      */
-    const float_t GAMMA = 4096.0f;  /* 2^12 */
-    const float_t R_GAMMA_SQ = 5.96046e-8f;
-    const float_t GAMMA_SQ = 1.67772e7f;
+    const float GAMMA = 4096.0f;  /* 2^12 */
+    const float R_GAMMA_SQ = 5.96046e-8f;
+    const float GAMMA_SQ = 1.67772e7f;
     int_fast8_t flag;
 
-    float_t h11, h12, h21, h22;
-    float_t p1, q1, q2, u;
+    float h11, h12, h21, h22;
+    float p1, q1, q2, u;
 
     if (*d1 < 0.0f) {
         /* This condition (eventually) prevents divide by zero when dividing
@@ -749,7 +784,7 @@ sp_blas_srotmg(
         h11 = h12 = h21 = h22 = *d1 = *d2 = *x = 0.0f;
     } else {
         /* Line 132 */
-        float_t p2 = *d2 * y;
+        float p2 = *d2 * y;
         if (p2 == 0.0f) {
             /* In this case, we're already parallel to the x-axis in the
              * plane and there's nothing to rotate. (what about d2 = 0?)
@@ -788,7 +823,7 @@ sp_blas_srotmg(
                 h11 = h12 = h21 = h22 = *d1 = *d2 = *x = 0.0f;
             } else {
                 /* Line 169 */
-                float_t tmp;
+                float tmp;
                 flag = 1;
                 h22 = p1 / p2;
                 h22 = *x / y;
@@ -865,7 +900,7 @@ sp_blas_srotmg(
         p[4] = h22;
     }
 
-    p[0] = (float_t)(flag);
+    p[0] = (float)(flag);
 }
 
 
@@ -891,12 +926,12 @@ sp_blas_srotmg(
 void
 sp_blas_sscal(
     len_t n,
-    float_t alpha,
-    float_t * const x,
+    float alpha,
+    float * const x,
     len_t inc_x)
 {
     if (alpha == 0.0f) {
-        memset(x, 0, sizeof(float_t) * n);
+        memset(x, 0, sizeof(float) * n);
     } else if (inc_x == 1) {
         for (len_t i = 0; i < n; i++) {
             x[i] *= alpha;
@@ -914,14 +949,14 @@ sp_blas_sscal(
 len_t
 sp_blas_isamax(
     len_t n,
-    const float_t * const x,
+    const float * const x,
     len_t inc_x)
 {
     if (inc_x == 1) {
         len_t imax = 0;
-        float_t max = fabsf(x[imax]);
+        float max = fabsf(x[imax]);
         for (len_t i = 1; i < n; i++) {
-            float_t max_xi = fabsf(x[i]);
+            float max_xi = fabsf(x[i]);
             if (max_xi > max) {
                 max = max_xi;
                 imax = i;
@@ -930,12 +965,12 @@ sp_blas_isamax(
         return imax;
     } else {
         len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        float_t max = fabsf(x[ix]);
+        float max = fabsf(x[ix]);
         len_t imax = ix;
         ix += inc_x;
 
         for (len_t i = 1; i < n; i++) {
-            float_t max_xi = fabsf(x[ix]);
+            float max_xi = fabsf(x[ix]);
             if (max_xi > max) {
                 max = max_xi;
                 imax = ix;
@@ -950,14 +985,14 @@ sp_blas_isamax(
 len_t
 sp_blas_isamin(
     len_t n,
-    const float_t * const x,
+    const float * const x,
     len_t inc_x)
 {
     if (inc_x == 1) {
         len_t imin = 0;
-        float_t min = fabsf(x[imin]);
+        float min = fabsf(x[imin]);
         for (len_t i = 1; i < n; i++) {
-            float_t min_xi = fabsf(x[i]);
+            float min_xi = fabsf(x[i]);
             if (min_xi < min) {
                 min = min_xi;
                 imin = i;
@@ -966,12 +1001,12 @@ sp_blas_isamin(
         return imin;
     } else {
         len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        float_t min = fabsf(x[ix]);
+        float min = fabsf(x[ix]);
         len_t imin = ix;
         ix += inc_x;
 
         for (len_t i = 1; i < n; i++) {
-            float_t min_xi = fabsf(x[ix]);
+            float min_xi = fabsf(x[ix]);
             if (min_xi < min) {
                 min = min_xi;
                 imin = ix;

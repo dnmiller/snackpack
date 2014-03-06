@@ -119,21 +119,21 @@ ct_assert_eq(
 
 void
 ct_assert_float_eq(
-    float_t act,
-    float_t exp,
-    float_t fac,
+    float act,
+    float exp,
+    float fac,
     const char *test_name)
 {
-    float_t err = act - exp;
-    float_t abs_exp = fabsf(exp);
+    float err = act - exp;
+    float abs_exp = fabsf(exp);
     if ((abs_exp + fabsf(fac * err)) - abs_exp) {
         fail_count++;
         ct_log("\n"
             "Test failed: %s\n"
             "-----------\n"
-            "    Expected: %.12Le\n"
-            "    Actual:   %.12Le\n",
-            test_name, (long double)exp, (long double)act);
+            "    Expected: %.12f\n"
+            "    Actual:   %.12f\n",
+            test_name, exp, act);
         if (ct_log_numeric_error) {
             ct_record_error(err, test_name);
         }
@@ -150,36 +150,49 @@ ct_assert_float_eq(
 
 
 void
-ct_assert_almost_eq(
-    long double expected,
-    long double actual,
-    long double tolerance,
+ct_assert_float_vec_eq(
+    len_t n,
+    const float * const act,
+    const float * const exp,
+    float fac,
     const char *test_name)
 {
-    long double err = expected > actual ?
-                      expected - actual : actual - expected;
-    if (err > tolerance) {
-        fail_count++;
-        ct_log("\n"
-            "Test failed: %s\n"
-            "-----------\n"
-            "    Expected: %Le\n"
-            "    Actual:   %Le\n"
-            "    Error:    %Le\n", test_name, expected, actual, err);
-        if (ct_log_numeric_error) {
-            ct_record_error(err, test_name);
+    bool passed = true;
+
+    for (len_t i = 0; i < n; i++) {
+        float err = act[i] - exp[i];
+        float abs_exp = fabsf(exp[i]);
+        if ((abs_exp + fabsf(fac * err)) - abs_exp) {
+            if (passed) {
+                fail_count++;
+            } else {
+                passed = false;
+            }
+
+            ct_log("\n"
+                "Test failed: %s\n"
+                "-----------\n"
+                "    Element:  %d\n"
+                "    Expected: %.12f\n"
+                "    Actual:   %.12f\n",
+                test_name, i, exp[i], act[i]);
+            if (ct_log_numeric_error) {
+                ct_record_error(err, test_name);
+            }
+            if (ct_log_verbose) {
+                ct_log_result(err, fac, test_name);
+            }
+            if (ct_exit_on_fail) {
+                exit(-1);
+            }
+            break;
         }
-        if (ct_log_verbose) {
-            ct_log_result(err, 0.0, test_name);
-        }
-        if (ct_exit_on_fail) {
-            exit(-1);
-        }
-    } else {
+    }
+
+    if (passed) {
         ct_log(".");
     }
 }
-
 
 
 void
