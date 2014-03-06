@@ -52,9 +52,11 @@ test_sasum(void)
 
     /* Test for invalid dimensions */
     sp_blas_sasum(0, NULL, 1);
+    ct_assert_last_error(SP_ERROR_INVALID_DIM, "sasum: zero dim");
 
     /* Test for invalid increment */
     sp_blas_sasum(1, NULL, 0);
+    ct_assert_last_error(SP_ERROR_INVALID_INC, "sasum: zero inc");
 
 
     /* TODO: Test negative increments. */

@@ -6,45 +6,100 @@
 
 #include "snackpack/blas1_real.h"
 #include "snackpack/error.h"
+#include "snackpack/internal/blas1_real_internal.h"
 
 
-const char  *error_file = NULL;
-unsigned int error_line = 0;
+/* sasum for vectors with inc_x = 1 */
+float
+sp_blas_sasum_inc1(
+    len_t n,
+    const float * const x)
+{
+    float tmp = 0.0f;
+    for (len_t i = 0; i < n; i++) {
+        tmp += fabsf(x[i]);
+    }
+    return tmp;
+}
+
+
+/* sasum for vectors with inc_x != x */
+float
+sp_blas_sasum_incx(
+    len_t n,
+    const float * const x,
+    len_t inc_x)
+{
+    float tmp = 0.0f;
+    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+    for (len_t i = 0, ix = 0; i < n; i++) {
+        tmp += fabsf(x[ix]);
+        ix += inc_x;
+    }
+    return tmp;
+}
 
 
 /**
  * Return the sum of the absolute values of a vector (1-norm).
  *
- * \param[in] n        Number of elements add
- * \param[in] x        Pointer to the first element of the vector
- * \param[in] inc_x    Increment (stride) to sum over. Negative increments
- *                      are not supported.
+ * \param[in] n         Number of elements add
+ * \param[in] x         Pointer to the first element of the vector
+ * \param[in] inc_x     Increment (stride) to sum over
  * \returns             Sum of absolute values of the vector elements
  */
-float_t
+float
 sp_blas_sasum(
     len_t n,
-    const float_t * const x,
+    const float * const x,
     len_t inc_x)
 {
+    float result = 0.0f;
+
     SP_ASSERT_VALID_DIM(n);
     SP_ASSERT_VALID_INC(inc_x);
 
-    float_t tmp = 0.0f;
     if (inc_x == 1) {
-        for (len_t i = 0; i < n; i++) {
-            tmp += fabsf(x[i]);
-        }
+        result = sp_blas_sasum_inc1(n, x);
     } else {
-        for (len_t i = 0, ix = 0; i < n; i++) {
-            tmp += fabsf(x[ix]);
-            ix += inc_x;
-        }
+        result = sp_blas_sasum_incx(n, x, inc_x);
     }
-    return tmp;
 
 fail:
-    return 0.0f;
+    return result;
+}
+
+
+void
+sp_blas_saxpy_inc1(
+    len_t n,
+    float_t alpha,
+    const float_t * const x,
+    float_t * const y)
+{
+    for (len_t i = 0; i < n; i++) {
+        y[i] += alpha * x[i];
+    }
+}
+
+
+void
+sp_blas_saxpy_incxy(
+    len_t n,
+    float alpha,
+    const float * const x,
+    len_t inc_x,
+    float * const y,
+    len_t inc_y)
+{
+    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+    len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
+
+    for (len_t i = 0; i < n; i++) {
+        y[iy] += alpha * x[ix];
+        ix += inc_x;
+        iy += inc_y;
+    }
 }
 
 
@@ -66,31 +121,28 @@ fail:
 void
 sp_blas_saxpy(
     len_t n,
-    float_t alpha,
-    const float_t * const x,
+    float alpha,
+    const float * const x,
     len_t inc_x,
-    float_t * const y,
+    float * const y,
     len_t inc_y)
 {
+    SP_ASSERT_VALID_DIM(n);
+    SP_ASSERT_VALID_INC(inc_x);
+    SP_ASSERT_VALID_INC(inc_y);
+
     if (alpha == 0.0f) {
         /* Nothing to do */
         return;
     }
-
-    if (inc_x == 1 && inc_y == 1) {
-        for (len_t i = 0; i < n; i++) {
-            y[i] += alpha * x[i];
-        }
+    else if (inc_x == 1 && inc_y == 1) {
+        sp_blas_saxpy_inc1(n, alpha, x, y);
     } else {
-        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
-
-        for (len_t i = 0; i < n; i++) {
-            y[iy] += alpha * x[ix];
-            ix += inc_x;
-            iy += inc_y;
-        }
+        sp_blas_saxpy_incxy(n, alpha, x, inc_x, y, inc_y);
     }
+
+fail:
+    return;
 }
 
 
@@ -325,44 +377,90 @@ sp_blas_sdsdot(
 }
 
 
-/**
- * Take the two-norm of a vector.
- */
-float_t
-sp_blas_snrm2(
+/* snrm2 for inc_x = 1 */
+float
+sp_blas_snrm2_inc1(
     len_t n,
-    const float_t * const x,
-    len_t inc_x)
+    const float * const x)
 {
-    SP_ASSERT_VALID_DIM(n);
-    SP_ASSERT_VALID_INC(inc_x);
-
-    if (inc_x > 1 && n == 1) {
-        return fabsf(*x);
-    }
-
-    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-    float_t scale = 0.0f;
-    float_t sq = 1.0f;
+    float scale = 0.0f;
+    float sq = 1.0f;
 
     for (len_t i = 0; i < n; i++) {
-        if (x[ix] != 0.0f) {
-            float_t absx = fabsf(x[ix]);
+        if (x[i] != 0.0f) {
+            float absx = fabsf(x[i]);
             if (scale < absx) {
-                float_t tmp = scale / absx;
+                float tmp = scale / absx;
                 sq = 1.0f + sq * tmp * tmp;
                 scale = absx;
             } else {
-                float_t tmp = absx / scale;
+                float tmp = absx / scale;
+                sq += tmp * tmp;
+            }
+        }
+    }
+    return scale * sqrtf(sq);
+}
+
+
+/* snrm2 for inc_x != 1 */
+float
+sp_blas_snrm2_incx(
+    len_t n,
+    const float * const x,
+    len_t inc_x)
+{
+    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+    float scale = 0.0f;
+    float sq = 1.0f;
+
+    for (len_t i = 0; i < n; i++) {
+        if (x[ix] != 0.0f) {
+            float absx = fabsf(x[ix]);
+            if (scale < absx) {
+                float tmp = scale / absx;
+                sq = 1.0f + sq * tmp * tmp;
+                scale = absx;
+            } else {
+                float tmp = absx / scale;
                 sq += tmp * tmp;
             }
         }
         ix += inc_x;
     }
     return scale * sqrtf(sq);
+}
+
+
+/**
+ * Take the two-norm of a vector.
+ *
+ * \param[in] n         Number of elements add
+ * \param[in] x         Pointer to the first element of the vector
+ * \param[in] inc_x     Increment (stride) to sum over
+ * \returns             Two-norm of the vector elements
+ */
+float
+sp_blas_snrm2(
+    len_t n,
+    const float * const x,
+    len_t inc_x)
+{
+    float result = 0.0f;
+
+    SP_ASSERT_VALID_DIM(n);
+    SP_ASSERT_VALID_INC(inc_x);
+
+    if (n == 1) { return fabsf(*x); }
+
+    if (inc_x == 0) {
+        result = sp_blas_snrm2_inc1(n, x);
+    } else {
+        result = sp_blas_snrm2_incx(n, x, inc_x);
+    }
 
 fail:
-    return 0.0f;
+    return result;
 }
 
 
