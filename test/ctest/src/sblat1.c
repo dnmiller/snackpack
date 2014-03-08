@@ -199,6 +199,42 @@ test_sswap(void)
 }
 
 
+static void
+test_isamax(void)
+{
+    const len_t VEC_LEN = 5;
+    const float test_vec[VEC_LEN] = {1.2f, 3.3f, -1.2f, -10.3f, 0.0f};
+
+    ct_assert_int_eq(3, sp_blas_isamax(5, test_vec, 1), "isamax check");
+    ct_assert_int_eq(0, sp_blas_isamax(3, test_vec, 2), "isamax check");
+    ct_assert_int_eq(2, sp_blas_isamax(3, test_vec, -2), "isamax check");
+
+    /* Invalid arguments */
+    sp_blas_isamax(0, NULL, 1);
+    ct_assert_last_error(SP_ERROR_INVALID_DIM, "sasum: zero dim");
+    sp_blas_isamax(1, NULL, 0);
+    ct_assert_last_error(SP_ERROR_INVALID_INC, "sasum: zero inc");
+}
+
+
+static void
+test_isamin(void)
+{
+    const len_t VEC_LEN = 5;
+    const float test_vec[VEC_LEN] = {1.2f, 3.3f, -1.2f, -0.3f, 5.0f};
+
+    ct_assert_int_eq(3, sp_blas_isamin(5, test_vec, 1), "isamin check");
+    ct_assert_int_eq(0, sp_blas_isamin(3, test_vec, 2), "isamin check");
+    ct_assert_int_eq(2, sp_blas_isamin(3, test_vec, -2), "isamin check");
+
+    /* Invalid arguments */
+    sp_blas_isamin(0, NULL, 1);
+    ct_assert_last_error(SP_ERROR_INVALID_DIM, "sasum: zero dim");
+    sp_blas_isamin(1, NULL, 0);
+    ct_assert_last_error(SP_ERROR_INVALID_INC, "sasum: zero inc");
+}
+
+
 int main(void)
 {
     test_sasum();
@@ -206,6 +242,9 @@ int main(void)
     test_saxpy();
     test_scopy();
     test_sswap();
+    test_isamax();
+    test_isamin();
+
     printf("Done\n");
     return 0;
 }

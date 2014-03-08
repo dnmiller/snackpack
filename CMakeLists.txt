@@ -16,6 +16,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 # subdirectory.
 set(PROJECT_SOURCES
     blas1_real.c
+    blas1_real_internal.c
     error.c
 )
 

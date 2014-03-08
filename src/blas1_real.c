@@ -9,37 +9,6 @@
 #include "snackpack/internal/blas1_real_internal.h"
 
 
-/* sasum for vectors with inc_x = 1 */
-float
-sp_blas_sasum_inc1(
-    len_t n,
-    const float * const x)
-{
-    float tmp = 0.0f;
-    for (len_t i = 0; i < n; i++) {
-        tmp += fabsf(x[i]);
-    }
-    return tmp;
-}
-
-
-/* sasum for vectors with inc_x != x */
-float
-sp_blas_sasum_incx(
-    len_t n,
-    const float * const x,
-    len_t inc_x)
-{
-    float tmp = 0.0f;
-    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-    for (len_t i = 0; i < n; i++) {
-        tmp += fabsf(x[ix]);
-        ix += inc_x;
-    }
-    return tmp;
-}
-
-
 /**
  * Return the sum of the absolute values of a vector (1-norm).
  *
@@ -67,47 +36,6 @@ sp_blas_sasum(
 
 fail:
     return result;
-}
-
-
-/* saxpy for inc_x = inc_y = 1 */
-void
-sp_blas_saxpy_inc1(
-    len_t n,
-    float alpha,
-    const float * const x,
-    float * const y)
-{
-    if (alpha != 0.0f) {
-        for (len_t i = 0; i < n; i++) {
-            y[i] += alpha * x[i];
-        }
-    }
-    /* If alpha == 0, nothing to do */
-}
-
-
-/* saxpy for inc_x != 1 or inc_y != 1 */
-void
-sp_blas_saxpy_incxy(
-    len_t n,
-    float alpha,
-    const float * const x,
-    len_t inc_x,
-    float * const y,
-    len_t inc_y)
-{
-    if (alpha != 0.0f) {
-        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
-
-        for (len_t i = 0; i < n; i++) {
-            y[iy] += alpha * x[ix];
-            ix += inc_x;
-            iy += inc_y;
-        }
-    }
-    /* If alpha == 0, nothing to do */
 }
 
 
@@ -154,8 +82,7 @@ fail:
  * Compute a Givens plane rotation.
  *
  * The z parameter is something of a mystery. None of the LAPACK functions
- * call this function since the modified Givens rotation (srotmg) is more
- * efficient.
+ * call this.
  *
  * \param[in,out] a     On entry, the first element of vector to be rotated.
  *                      On exit, equal to the first (non-zero) element of
@@ -207,45 +134,6 @@ sp_blas_srotg(
 }
 
 
-void
-sp_blas_srot_inc1(
-    len_t n,
-    float * const x,
-    float * const y,
-    float c,
-    float s)
-{
-    for (len_t i = 0; i < n; i++) {
-        float tmp = c * x[i] + s * y[i];
-        y[i] = c * y[i] - s * x[i];
-        x[i] = tmp;
-    }
-}
-
-
-void
-sp_blas_srot_incxy(
-    len_t n,
-    float * const x,
-    len_t inc_x,
-    float * const y,
-    len_t inc_y,
-    float c,
-    float s)
-{
-    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-    len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
-
-    for (len_t i = 0; i < n; i++) {
-        float tmp = c * x[ix] + s * y[iy];
-        y[iy] = c * y[iy] - s * x[ix];
-        x[ix] = tmp;
-        ix += inc_x;
-        iy += inc_y;
-    }
-}
-
-
 /**
  * Apply a plane rotation.
  *
@@ -282,43 +170,6 @@ fail:
 }
 
 
-/* sswap for inc_x = inc_y = 1 */
-void
-sp_blas_sswap_inc1(
-    len_t n,
-    float * const x,
-    float * const y)
-{
-    for (len_t i = 0; i < n; i++) {
-        float tmp = x[i];
-        x[i] = y[i];
-        y[i] = tmp;
-    }
-}
-
-
-/* sswap for inc_x, inc_y != 1 */
-void
-sp_blas_sswap_incxy(
-    len_t n,
-    float * const x,
-    len_t inc_x,
-    float * const y,
-    len_t inc_y)
-{
-    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-    len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
-
-    for (len_t i = 0; i < n; i++) {
-        float tmp = x[ix];
-        x[ix] = y[iy];
-        y[iy] = tmp;
-        ix += inc_x;
-        iy += inc_y;
-    }
-}
-
-
 /**
  * Swap the contents of two vectors.
  *
@@ -350,39 +201,6 @@ fail:
 }
 
 
-/* scopy for inc_x, inc_y = 1 */
-void
-sp_blas_scopy_inc1(
-    len_t n,
-    const float * const x,
-    float * const y)
-{
-    for (len_t i = 0; i < n; i++) {
-        y[i] = x[i];
-    }
-}
-
-
-/* scopy for inc_x, inc_y != 1 */
-void
-sp_blas_scopy_incxy(
-    len_t n,
-    const float * const x,
-    len_t inc_x,
-    float * const y,
-    len_t inc_y)
-{
-    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-    len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
-
-    for (len_t i = 0; i < n; i++) {
-        y[iy] = x[ix];
-        ix += inc_x;
-        iy += inc_y;
-    }
-}
-
-
 /**
  * Copy the contents of one vector to another.
  *
@@ -409,131 +227,9 @@ sp_blas_scopy(
     } else {
         sp_blas_scopy_incxy(n, x, inc_x, y, inc_y);
     }
+
 fail:
     return;
-}
-
-
-/**
- * Take the dot product of two vectors.
- */
-float
-sp_blas_sdot(
-    len_t n,
-    const float * const x,
-    len_t inc_x,
-    const float * const y,
-    len_t inc_y)
-{
-    float tmp = 0.0f;
-    if (inc_x == 1 && inc_y == 1) {
-        for (len_t i = 0; i < n; i++) {
-            tmp += x[i] * y[i];
-        }
-    } else {
-        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
-
-        for (len_t i = 0; i < n; i++) {
-            tmp += x[ix] * y[ix];
-            ix += inc_x;
-            iy += inc_y;
-        }
-    }
-
-    return tmp;
-}
-
-
-/**
- * Take the dot product of two single-precision vectors, doing the
- * accumulation in double precision.
- */
-float
-sp_blas_sdsdot(
-    len_t n,
-    float sb,
-    const float * const x,
-    len_t inc_x,
-    const float * const y,
-    len_t inc_y)
-{
-    double_t tmp = (double_t)sb;
-
-    if (n <= 0)
-        return (float)tmp;
-
-    if (inc_x == 1 && inc_y == 1) {
-        for (len_t i = 0; i < n; i++) {
-            tmp += (double_t)x[i] * (double_t)y[i];
-        }
-    } else {
-        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
-
-        for (len_t i = 0; i < n; i++) {
-            tmp += (double_t)x[ix] * (double_t)y[ix];
-            ix += inc_x;
-            iy += inc_y;
-        }
-    }
-
-    return (float)tmp;
-}
-
-
-/* snrm2 for inc_x = 1 */
-float
-sp_blas_snrm2_inc1(
-    len_t n,
-    const float * const x)
-{
-    float scale = 0.0f;
-    float sq = 1.0f;
-
-    for (len_t i = 0; i < n; i++) {
-        if (x[i] != 0.0f) {
-            float absx = fabsf(x[i]);
-            if (scale < absx) {
-                float tmp = scale / absx;
-                sq = 1.0f + sq * tmp * tmp;
-                scale = absx;
-            } else {
-                float tmp = absx / scale;
-                sq += tmp * tmp;
-            }
-        }
-    }
-    return scale * sqrtf(sq);
-}
-
-
-/* snrm2 for inc_x != 1 */
-float
-sp_blas_snrm2_incx(
-    len_t n,
-    const float * const x,
-    len_t inc_x)
-{
-    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-    float scale = 0.0f;
-    float sq = 1.0f;
-
-    for (len_t i = 0; i < n; i++) {
-        if (x[ix] != 0.0f) {
-            float absx = fabsf(x[ix]);
-            if (scale < absx) {
-                float tmp = scale / absx;
-                sq = 1.0f + sq * tmp * tmp;
-                scale = absx;
-            } else {
-                float tmp = absx / scale;
-                sq += tmp * tmp;
-            }
-        }
-        ix += inc_x;
-    }
-    return scale * sqrtf(sq);
 }
 
 
@@ -562,6 +258,106 @@ sp_blas_snrm2(
         result = sp_blas_snrm2_inc1(n, x);
     } else {
         result = sp_blas_snrm2_incx(n, x, inc_x);
+    }
+
+fail:
+    return result;
+}
+
+
+/**
+ * Scale the contents of a vector.
+ *
+ * For a vector \f$x\f$ and a scalar \f$ \alpha \f$, this computes the
+ * scalar-vector product \f$\alpha x\f$ and stores the result in \f$x\f$.
+ *
+ * \param[in] n         Length of the vector
+ * \param[in] alpha     Scalar to apply
+ * \param[in,out] x     Vector to scale
+ * \param[in] inc_x     Increment (stride) of x vector.
+ *
+ * If inc_x is negative, then iteration is backwards starting with element
+ * (1 - n) * inc_x. For example, n = 5 and inc_x = -2 would iterate over
+ * x[8], x[6], x[4], x[2], x[0].
+ *
+ * Note: The reference implementation does not support negative increments.
+ * It is added here because the operation is used higher level BLAS
+ * functions. (Netlib just re-implements it.)
+ */
+void
+sp_blas_sscal(
+    len_t n,
+    float alpha,
+    float * const x,
+    len_t inc_x)
+{
+    SP_ASSERT_VALID_DIM(n);
+    SP_ASSERT_VALID_INC(inc_x);
+
+    if (alpha == 0.0f) {
+        memset(x, 0, sizeof(float) * n);
+    } else if (inc_x == 1) {
+        for (len_t i = 0; i < n; i++) {
+            x[i] *= alpha;
+        }
+    } else {
+        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+        for (len_t i = 0; i < n; i++) {
+            x[ix] *= alpha;
+            ix += inc_x;
+        }
+    }
+
+fail:
+    return;
+}
+
+
+/**
+ * Find the element of an array with the largest magnitude.
+ *
+ * \param[in] n         Number of elements to copy
+ * \param[in] x         Array of dimension at least (1 + (n-1)*abs(inc_x))
+ * \param[in] inc_x     Increment (stride) for the elements of x
+ * \returns             Index of the element with the largest absolute value
+ */
+len_t
+sp_blas_isamax(
+    len_t n,
+    const float * const x,
+    len_t inc_x)
+{
+    len_t result = 0;
+
+    SP_ASSERT_VALID_DIM(n);
+    SP_ASSERT_VALID_INC(inc_x);
+
+    if (inc_x == 1) {
+        result = sp_blas_isamax_inc1(n, x);
+    } else {
+        result = sp_blas_isamax_incx(n, x, inc_x);
+    }
+
+fail:
+    return result;
+}
+
+
+len_t
+sp_blas_isamin(
+    len_t n,
+    const float * const x,
+    len_t inc_x)
+{
+    len_t result = 0;
+
+    SP_ASSERT_VALID_DIM(n);
+    SP_ASSERT_VALID_INC(inc_x);
+
+    if (inc_x == 1) {
+        result = sp_blas_isamin_inc1(n, x);
+    } else {
+        result = sp_blas_isamin_incx(n, x, inc_x);
     }
 
 fail:
@@ -975,115 +771,70 @@ sp_blas_srotmg(
 
 
 /**
- * Scale the contents of a vector.
- *
- * For a vector \f$x\f$ and a scalar \f$ \alpha \f$, this computes the
- * scalar-vector product \f$\alpha x\f$ and stores the result in \f$x\f$.
- *
- * \param[in] n         Length of the vector
- * \param[in] alpha     Scalar to apply
- * \param[in,out] x     Vector to scale
- * \param[in] inc_x     Increment (stride) of x vector.
- *
- * If inc_x is negative, then iteration is backwards starting with element
- * (1 - n) * inc_x. For example, n = 5 and inc_x = -2 would iterate over
- * x[8], x[6], x[4], x[2], x[0].
- *
- * Note: The reference implementation does not support negative increments.
- * It is added here because the operation is used higher level BLAS
- * functions. (Netlib just re-implements it.)
+ * Take the dot product of two vectors.
  */
-void
-sp_blas_sscal(
-    len_t n,
-    float alpha,
-    float * const x,
-    len_t inc_x)
-{
-    if (alpha == 0.0f) {
-        memset(x, 0, sizeof(float) * n);
-    } else if (inc_x == 1) {
-        for (len_t i = 0; i < n; i++) {
-            x[i] *= alpha;
-        }
-    } else {
-        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        for (len_t i = 0; i < n; i++) {
-            x[ix] *= alpha;
-            ix += inc_x;
-        }
-    }
-}
-
-
-len_t
-sp_blas_isamax(
+float
+sp_blas_sdot(
     len_t n,
     const float * const x,
-    len_t inc_x)
+    len_t inc_x,
+    const float * const y,
+    len_t inc_y)
 {
-    if (inc_x == 1) {
-        len_t imax = 0;
-        float max = fabsf(x[imax]);
-        for (len_t i = 1; i < n; i++) {
-            float max_xi = fabsf(x[i]);
-            if (max_xi > max) {
-                max = max_xi;
-                imax = i;
-            }
+    float tmp = 0.0f;
+    if (inc_x == 1 && inc_y == 1) {
+        for (len_t i = 0; i < n; i++) {
+            tmp += x[i] * y[i];
         }
-        return imax;
     } else {
         len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        float max = fabsf(x[ix]);
-        len_t imax = ix;
-        ix += inc_x;
+        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
 
-        for (len_t i = 1; i < n; i++) {
-            float max_xi = fabsf(x[ix]);
-            if (max_xi > max) {
-                max = max_xi;
-                imax = ix;
-            }
+        for (len_t i = 0; i < n; i++) {
+            tmp += x[ix] * y[ix];
             ix += inc_x;
+            iy += inc_y;
         }
-        return imax;
     }
+
+    return tmp;
 }
 
 
-len_t
-sp_blas_isamin(
+/**
+ * Take the dot product of two single-precision vectors, doing the
+ * accumulation in double precision.
+ */
+float
+sp_blas_sdsdot(
     len_t n,
+    float sb,
     const float * const x,
-    len_t inc_x)
+    len_t inc_x,
+    const float * const y,
+    len_t inc_y)
 {
-    if (inc_x == 1) {
-        len_t imin = 0;
-        float min = fabsf(x[imin]);
-        for (len_t i = 1; i < n; i++) {
-            float min_xi = fabsf(x[i]);
-            if (min_xi < min) {
-                min = min_xi;
-                imin = i;
-            }
+    double_t tmp = (double_t)sb;
+
+    if (n <= 0)
+        return (float)tmp;
+
+    if (inc_x == 1 && inc_y == 1) {
+        for (len_t i = 0; i < n; i++) {
+            tmp += (double_t)x[i] * (double_t)y[i];
         }
-        return imin;
     } else {
         len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        float min = fabsf(x[ix]);
-        len_t imin = ix;
-        ix += inc_x;
+        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
 
-        for (len_t i = 1; i < n; i++) {
-            float min_xi = fabsf(x[ix]);
-            if (min_xi < min) {
-                min = min_xi;
-                imin = ix;
-            }
+        for (len_t i = 0; i < n; i++) {
+            tmp += (double_t)x[ix] * (double_t)y[ix];
             ix += inc_x;
+            iy += inc_y;
         }
-        return imin;
     }
+
+    return (float)tmp;
 }
+
 

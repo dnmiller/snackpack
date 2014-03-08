@@ -8,6 +8,7 @@ add_executable(
     sblat1.c
     ../../../src/blas1_real.c
     ../../../src/error.c
+    ../../../src/blas1_real_internal.c
 )
 
 setup_target_for_coverage(ctest_coverage ctest coverage)
