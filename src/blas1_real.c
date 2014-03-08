@@ -32,7 +32,7 @@ sp_blas_sasum_incx(
 {
     float tmp = 0.0f;
     len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-    for (len_t i = 0, ix = 0; i < n; i++) {
+    for (len_t i = 0; i < n; i++) {
         tmp += fabsf(x[ix]);
         ix += inc_x;
     }
