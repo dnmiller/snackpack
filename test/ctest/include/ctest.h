@@ -47,6 +47,15 @@ ct_assert_float_eq(
 
 
 void
+ct_assert_float_vec_eq(
+    len_t n,
+    const float * const act,
+    const float * const exp,
+    float fac,
+    const char *test_name);
+
+
+void
 ct_assert_int_eq(
     unsigned int exp,
     unsigned int act,

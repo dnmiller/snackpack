@@ -282,8 +282,51 @@ fail:
 }
 
 
+/* sswap for inc_x = inc_y = 1 */
+void
+sp_blas_sswap_inc1(
+    len_t n,
+    float * const x,
+    float * const y)
+{
+    for (len_t i = 0; i < n; i++) {
+        float tmp = x[i];
+        x[i] = y[i];
+        y[i] = tmp;
+    }
+}
+
+
+/* sswap for inc_x, inc_y != 1 */
+void
+sp_blas_sswap_incxy(
+    len_t n,
+    float * const x,
+    len_t inc_x,
+    float * const y,
+    len_t inc_y)
+{
+    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+    len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
+
+    for (len_t i = 0; i < n; i++) {
+        float tmp = x[ix];
+        x[ix] = y[iy];
+        y[iy] = tmp;
+        ix += inc_x;
+        iy += inc_y;
+    }
+}
+
+
 /**
  * Swap the contents of two vectors.
+ *
+ * \param[in] n         Number of elements to copy
+ * \param[in] x         Array of dimension at least (1 + (n-1)*abs(inc_x))
+ * \param[in] inc_x     Increment (stride) for the elements of x
+ * \param[in,out] y     Array of dimension at least (1 + (n-2)*abs(inc_y))
+ * \param[in] inc_y     Increment (stride) for the elements of y
  */
 void
 sp_blas_sswap(
@@ -293,31 +336,61 @@ sp_blas_sswap(
     float * const y,
     len_t inc_y)
 {
-    float tmp;
+    SP_ASSERT_VALID_DIM(n);
+    SP_ASSERT_VALID_INC(inc_x);
+    SP_ASSERT_VALID_INC(inc_y);
 
     if (inc_x == 1 && inc_y == 1) {
-        for (len_t i = 0; i < n; i++) {
-            tmp = x[i];
-            x[i] = y[i];
-            y[i] = tmp;
-        }
+        sp_blas_sswap_inc1(n, x, y);
     } else {
-        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
+        sp_blas_sswap_incxy(n, x, inc_x, y, inc_y);
+    }
+fail:
+    return;
+}
 
-        for (len_t i = 0; i < n; i++) {
-            tmp = x[ix];
-            x[ix] = y[ix];
-            y[ix] = tmp;
-            ix += inc_x;
-            iy += inc_y;
-        }
+
+/* scopy for inc_x, inc_y = 1 */
+void
+sp_blas_scopy_inc1(
+    len_t n,
+    const float * const x,
+    float * const y)
+{
+    for (len_t i = 0; i < n; i++) {
+        y[i] = x[i];
+    }
+}
+
+
+/* scopy for inc_x, inc_y != 1 */
+void
+sp_blas_scopy_incxy(
+    len_t n,
+    const float * const x,
+    len_t inc_x,
+    float * const y,
+    len_t inc_y)
+{
+    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+    len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
+
+    for (len_t i = 0; i < n; i++) {
+        y[iy] = x[ix];
+        ix += inc_x;
+        iy += inc_y;
     }
 }
 
 
 /**
  * Copy the contents of one vector to another.
+ *
+ * \param[in] n         Number of elements to copy
+ * \param[in] x         Array of dimension at least (1 + (n-1)*abs(inc_x))
+ * \param[in] inc_x     Increment (stride) for the elements of x
+ * \param[in,out] y     Array of dimension at least (1 + (n-2)*abs(inc_y))
+ * \param[in] inc_y     Increment (stride) for the elements of y
  */
 void
 sp_blas_scopy(
@@ -327,20 +400,17 @@ sp_blas_scopy(
     float * const y,
     len_t inc_y)
 {
-    if (inc_x == 1 && inc_y == 1) {
-        for (len_t i = 0; i < n; i++) {
-            y[i] = x[i];
-        }
-    } else {
-        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
+    SP_ASSERT_VALID_DIM(n);
+    SP_ASSERT_VALID_INC(inc_x);
+    SP_ASSERT_VALID_INC(inc_y);
 
-        for (len_t i = 0; i < n; i++) {
-            y[iy] = x[ix];
-            ix += inc_x;
-            iy += inc_y;
-        }
+    if (inc_x == 1 && inc_y == 1) {
+        sp_blas_scopy_inc1(n, x, y);
+    } else {
+        sp_blas_scopy_incxy(n, x, inc_x, y, inc_y);
     }
+fail:
+    return;
 }
 
 
@@ -488,7 +558,7 @@ sp_blas_snrm2(
 
     if (n == 1) { return fabsf(*x); }
 
-    if (inc_x == 0) {
+    if (inc_x == 1) {
         result = sp_blas_snrm2_inc1(n, x);
     } else {
         result = sp_blas_snrm2_incx(n, x, inc_x);
