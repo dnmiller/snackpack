@@ -3,10 +3,21 @@
 #include "snackpack/snackpack.h"
 
 
+#ifndef SP_PRINTF
 #ifdef SP_NO_PRINT
 #define SP_PRINTF(...)
 #else
 #define SP_PRINTF(...) printf(__VA_ARGS__)
+#endif
+#endif
+
+
+#ifndef SP_FAIL
+#ifdef SP_FAIL_HARD
+#define SP_FAIL() exit(-1);
+#else
+#define SP_FAIL() do { goto fail; } while (0)
+#endif
 #endif
 
 
@@ -25,6 +36,7 @@ typedef enum {
 extern const char * SP_ERROR_DESCR[NUM_SP_ERROR];
 
 
+#ifndef SP_PRINT_ERROR
 #define SP_PRINT_ERROR(errno) \
 { \
     if ((errno) < NUM_SP_ERROR) { \
@@ -34,16 +46,18 @@ extern const char * SP_ERROR_DESCR[NUM_SP_ERROR];
         SP_PRINTF("Invalid error code %d!\n", (errno)); \
     } \
 }
+#endif
 
 
-
+#ifndef SP_ASSERT_CONDITION
 #define SP_ASSERT_CONDITION(cond, errno) \
 { \
     if (!(cond)) { \
         SP_PRINT_ERROR((errno)); \
-        goto fail; \
+        SP_FAIL(); \
     } \
 }
+#endif
 
 
 #define SP_ASSERT_VALID_DIM(n) \
