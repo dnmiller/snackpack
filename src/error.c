@@ -51,6 +51,13 @@ sp_error_last(void)
 }
 
 
+void
+sp_error_clear(void)
+{
+    last_error = SP_NO_ERROR;
+}
+
+
 const char *
 sp_error_string(
     SP_ERROR errno)

@@ -85,6 +85,10 @@ ct_record_error(
     const char *test_name);
 
 
+void
+ct_clear_last_error(void);
+
+
 extern bool ct_exit_on_fail;
 extern bool ct_log_verbose;
 extern bool ct_log_numeric_error;

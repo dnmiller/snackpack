@@ -74,6 +74,7 @@ test_sasum(void)
     const float SASUM_FAC = 2.5e-1;  /* 2^-2 */
 
     /* Test for invalid dimensions */
+    ct_clear_last_error();
     sp_blas_sasum(0, NULL, 1);
     ct_assert_last_error(SP_ERROR_INVALID_DIM, "sasum: zero dim");
 
@@ -109,6 +110,7 @@ test_snrm2(void)
     const float SNRM2_FAC = 2.5e-1;     /* 2^-1 */
 
     /* Test for invalid dimensions */
+    ct_clear_last_error();
     sp_blas_snrm2(0, NULL, 1);
     ct_assert_last_error(SP_ERROR_INVALID_DIM, "snrm2: zero dim");
 
@@ -210,6 +212,7 @@ test_isamax(void)
     ct_assert_int_eq(2, sp_blas_isamax(3, test_vec, -2), "isamax check");
 
     /* Invalid arguments */
+    ct_clear_last_error();
     sp_blas_isamax(0, NULL, 1);
     ct_assert_last_error(SP_ERROR_INVALID_DIM, "sasum: zero dim");
     sp_blas_isamax(1, NULL, 0);
@@ -228,6 +231,7 @@ test_isamin(void)
     ct_assert_int_eq(2, sp_blas_isamin(3, test_vec, -2), "isamin check");
 
     /* Invalid arguments */
+    ct_clear_last_error();
     sp_blas_isamin(0, NULL, 1);
     ct_assert_last_error(SP_ERROR_INVALID_DIM, "sasum: zero dim");
     sp_blas_isamin(1, NULL, 0);

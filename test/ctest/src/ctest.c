@@ -217,6 +217,12 @@ ct_assert_last_error(
 }
 
 
+void
+ct_clear_last_error(void)
+{
+    sp_error_clear();
+}
+
 
 
 /* Record for numerical error.

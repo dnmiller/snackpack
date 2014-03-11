@@ -45,9 +45,9 @@ fail:
  *
  * \param[in] n             Number of elements in x and y
  * \param[in] alpha         Scaler to multiply x by
- * \param[in] x             x vector
+ * \param[in] x             Array of dimension at least (1 + (n-1)*abs(inc_x))
  * \param[in] inc_x         Increment (stride) to iterate over x
- * \param[in,out] y         y vector, stored result
+ * \param[in,out] y         Array of dimension at least (1 + (n-1)*abs(inc_x))
  * \param[in] inc_y         Increment (stride) to iterate over y
  *
  * If inc_x or inc_y is negative, then iteration is backwards starting with
@@ -75,6 +75,35 @@ sp_blas_saxpy(
 
 fail:
     return;
+}
+
+
+/**
+ * Take the dot product of two vectors.
+ *
+ * \param[in] n             Number of elements in x and y
+ * \param[in] x             Array of dimension at least (1 + (n-1)*abs(inc_x))
+ * \param[in] inc_x         Increment (stride) of x.
+ * \param[in] y             Array of dimension at least (1 + (n-1)*abs(inc_x))
+ * \param[in] inc_y         Increment (stride) of y.
+ */
+float
+sp_blas_sdot(
+    len_t n,
+    const float * const x,
+    len_t inc_x,
+    const float * const y,
+    len_t inc_y)
+{
+    float result = 0.0f;
+    if (inc_x == 1 && inc_y == 1) {
+        result = sp_blas_sdot_inc1(n, x, y);
+    } else {
+        result = sp_blas_sdot_incxy(n, x, inc_x, y, inc_y);
+    }
+
+fail:
+    return result;
 }
 
 
@@ -196,6 +225,7 @@ sp_blas_sswap(
     } else {
         sp_blas_sswap_incxy(n, x, inc_x, y, inc_y);
     }
+
 fail:
     return;
 }
@@ -297,15 +327,9 @@ sp_blas_sscal(
     if (alpha == 0.0f) {
         memset(x, 0, sizeof(float) * n);
     } else if (inc_x == 1) {
-        for (len_t i = 0; i < n; i++) {
-            x[i] *= alpha;
-        }
+        sp_blas_sscal_inc1(n, alpha, x);
     } else {
-        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        for (len_t i = 0; i < n; i++) {
-            x[ix] *= alpha;
-            ix += inc_x;
-        }
+        sp_blas_sscal_incx(n, alpha, x, inc_x);
     }
 
 fail:
@@ -343,6 +367,14 @@ fail:
 }
 
 
+/**
+ * Find the element of an array with the smallest magnitude.
+ *
+ * \param[in] n         Number of elements to copy
+ * \param[in] x         Array of dimension at least (1 + (n-1)*abs(inc_x))
+ * \param[in] inc_x     Increment (stride) for the elements of x
+ * \returns             Index of the element with the smallest absolute value
+ */
 len_t
 sp_blas_isamin(
     len_t n,
@@ -363,6 +395,47 @@ sp_blas_isamin(
 fail:
     return result;
 }
+
+
+/**
+ * Take the dot product of two single-precision vectors, doing the
+ * accumulation in double precision.
+ */
+float
+sp_blas_sdsdot(
+    len_t n,
+    float sb,
+    const float * const x,
+    len_t inc_x,
+    const float * const y,
+    len_t inc_y)
+{
+    double_t tmp = (double_t)sb;
+
+    SP_ASSERT_VALID_DIM(n);
+    SP_ASSERT_VALID_INC(inc_x);
+    SP_ASSERT_VALID_INC(inc_y);
+
+    if (inc_x == 1 && inc_y == 1) {
+        for (len_t i = 0; i < n; i++) {
+            tmp += (double_t)x[i] * (double_t)y[i];
+        }
+    } else {
+        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
+
+        for (len_t i = 0; i < n; i++) {
+            tmp += (double_t)x[ix] * (double_t)y[ix];
+            ix += inc_x;
+            iy += inc_y;
+        }
+    }
+
+fail:
+    return (float)tmp;
+}
+
+
 
 
 /**
@@ -770,71 +843,5 @@ sp_blas_srotmg(
 }
 
 
-/**
- * Take the dot product of two vectors.
- */
-float
-sp_blas_sdot(
-    len_t n,
-    const float * const x,
-    len_t inc_x,
-    const float * const y,
-    len_t inc_y)
-{
-    float tmp = 0.0f;
-    if (inc_x == 1 && inc_y == 1) {
-        for (len_t i = 0; i < n; i++) {
-            tmp += x[i] * y[i];
-        }
-    } else {
-        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
-
-        for (len_t i = 0; i < n; i++) {
-            tmp += x[ix] * y[ix];
-            ix += inc_x;
-            iy += inc_y;
-        }
-    }
-
-    return tmp;
-}
-
-
-/**
- * Take the dot product of two single-precision vectors, doing the
- * accumulation in double precision.
- */
-float
-sp_blas_sdsdot(
-    len_t n,
-    float sb,
-    const float * const x,
-    len_t inc_x,
-    const float * const y,
-    len_t inc_y)
-{
-    double_t tmp = (double_t)sb;
-
-    if (n <= 0)
-        return (float)tmp;
-
-    if (inc_x == 1 && inc_y == 1) {
-        for (len_t i = 0; i < n; i++) {
-            tmp += (double_t)x[i] * (double_t)y[i];
-        }
-    } else {
-        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
-
-        for (len_t i = 0; i < n; i++) {
-            tmp += (double_t)x[ix] * (double_t)y[ix];
-            ix += inc_x;
-            iy += inc_y;
-        }
-    }
-
-    return (float)tmp;
-}
 
 

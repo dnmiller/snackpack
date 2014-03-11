@@ -44,6 +44,10 @@ sp_error_log(
     const char *func);
 
 
+void
+sp_error_clear(void);
+
+
 #define SP_ASSERT_CONDITION(cond, errno) \
     do { \
     if (!(cond)) { \

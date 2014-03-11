@@ -328,3 +328,67 @@ sp_blas_isamin_incx(
 }
 
 
+/* sscal for inc = 1 */
+void
+sp_blas_sscal_inc1(
+    len_t n,
+    float alpha,
+    float * const x)
+{
+    for (len_t i = 0; i < n; i++) {
+        x[i] *= alpha;
+    }
+}
+
+
+/* sccal for inc != 1 */
+void
+sp_blas_sscal_incx(
+    len_t n,
+    float alpha,
+    float * const x,
+    len_t inc_x)
+{
+    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+    for (len_t i = 0; i < n; i++) {
+        x[ix] *= alpha;
+        ix += inc_x;
+    }
+}
+
+
+/* sdot for inc_x = inc_y = 1 */
+float
+sp_blas_sdot_inc1(
+    len_t n,
+    const float * const x,
+    const float * const y)
+{
+    float tmp = 0.0f;
+    for (len_t i = 0; i < n; i++) {
+        tmp += x[i] * y[i];
+    }
+    return tmp;
+}
+
+
+/* sdot for inc_x or inc_y != 1 */
+float
+sp_blas_sdot_incxy(
+    len_t n,
+    const float * const x,
+    len_t inc_x,
+    const float * const y,
+    len_t inc_y)
+{
+    float tmp = 0.0f;
+    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+    len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
+
+    for (len_t i = 0; i < n; i++) {
+        tmp += x[ix] * y[ix];
+        ix += inc_x;
+        iy += inc_y;
+    }
+    return tmp;
+}

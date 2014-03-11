@@ -2,7 +2,6 @@
 #define _SNACKPACK_INTERNAL_BLAS1_REAL_INTERNAL_H_
 
 
-/* sasum */
 float
 sp_blas_sasum_inc1(
     len_t n,
@@ -16,7 +15,6 @@ sp_blas_sasum_incx(
     len_t inc_x);
 
 
-/* snrm2 */
 float
 sp_blas_snrm2_inc1(
     len_t n,
@@ -30,7 +28,6 @@ sp_blas_snrm2_incx(
     len_t inc_x);
 
 
-/* saxpy */
 void
 sp_blas_saxpy_inc1(
     len_t n,
@@ -138,6 +135,37 @@ sp_blas_isamin_incx(
     len_t n,
     const float * const x,
     len_t inc_x);
+
+
+void
+sp_blas_sscal_inc1(
+    len_t n,
+    float alpha,
+    float * const x);
+
+
+void
+sp_blas_sscal_incx(
+    len_t n,
+    float alpha,
+    float * const x,
+    len_t inc_x);
+
+
+float
+sp_blas_sdot_inc1(
+    len_t n,
+    const float * const x,
+    const float * const y);
+
+
+float
+sp_blas_sdot_incxy(
+    len_t n,
+    const float * const x,
+    len_t inc_x,
+    const float * const y,
+    len_t inc_y);
 
 
 #endif
