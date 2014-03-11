@@ -85,6 +85,8 @@ sp_blas_snrm2(
     len_t inc_x);
 
 
+// Modified Givens is not finished yet.
+#if 0
 void
 sp_blas_srotm(
     len_t n,
@@ -102,6 +104,7 @@ sp_blas_srotmg(
     float * const x,
     float y,
     float * const p);
+#endif
 
 
 void

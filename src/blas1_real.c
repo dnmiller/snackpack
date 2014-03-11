@@ -329,7 +329,7 @@ sp_blas_sscal(
     SP_ASSERT_VALID_INC(inc_x);
 
     if (alpha == 0.0f) {
-        memset(x, 0, sizeof(float) * n);
+        memset(x, 0, sizeof(float) * (size_t)n);
     } else if (inc_x == 1) {
         sp_blas_sscal_inc1(n, alpha, x);
     } else {
@@ -441,6 +441,7 @@ fail:
 
 
 
+#if 0
 
 /**
  * Apply a modified Givens rotation to two vectors.
@@ -846,6 +847,7 @@ sp_blas_srotmg(
     p[0] = (float)(flag);
 }
 
+#endif
 
 
 
