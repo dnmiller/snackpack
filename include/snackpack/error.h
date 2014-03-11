@@ -4,9 +4,9 @@
 
 
 #ifdef SP_NO_PRINT
-#define SP_LOG_FUNC(...)
+#define SP_PRINTF(...)
 #else
-#define SP_LOG_FUNC(...) printf(__VA_ARGS__)
+#define SP_PRINTF(...) printf(__VA_ARGS__)
 #endif
 
 
@@ -22,45 +22,35 @@ typedef enum {
 } SP_ERROR;
 
 
-bool
-sp_error_reported(void);
+extern const char * SP_ERROR_DESCR[NUM_SP_ERROR];
 
 
-SP_ERROR
-sp_error_last(void);
+#define SP_PRINT_ERROR(errno) \
+{ \
+    if ((errno) < NUM_SP_ERROR) { \
+        SP_PRINTF("Error \"%s\" in %s(%d):%s\n", \
+            SP_ERROR_DESCR[(errno)], __FILE__, __LINE__, __func__); \
+    } else { \
+        SP_PRINTF("Invalid error code %d!\n", (errno)); \
+    } \
+}
 
-
-const char *
-sp_error_string(
-    SP_ERROR errno);
-
-
-void
-sp_error_log(
-    SP_ERROR error,
-    int arg,
-    const char *file,
-    int line,
-    const char *func);
-
-
-void
-sp_error_clear(void);
 
 
 #define SP_ASSERT_CONDITION(cond, errno) \
-    do { \
+{ \
     if (!(cond)) { \
-        sp_error_log((errno), n, __FILE__, __LINE__, __func__); \
+        SP_PRINT_ERROR((errno)); \
         goto fail; \
-    }} while (0)
+    } \
+}
 
 
 #define SP_ASSERT_VALID_DIM(n) \
-    do { \
+    { \
     SP_ASSERT_CONDITION((n) > 0, SP_ERROR_INVALID_DIM); \
     SP_ASSERT_CONDITION((n) <= SP_MAX_DIMENSION, SP_ERROR_DIM_TOO_LARGE); \
-    } while (0)
+    }
 
 
 #define SP_ASSERT_VALID_INC(n) \

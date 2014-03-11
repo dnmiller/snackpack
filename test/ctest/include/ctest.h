@@ -63,12 +63,6 @@ ct_assert_int_eq(
 
 
 void
-ct_assert_last_error(
-    SP_ERROR error,
-    const char *test_name);
-
-
-void
 ct_log_result(
     long double err,
     long double tol,
@@ -83,10 +77,6 @@ void
 ct_record_error(
     long double error,
     const char *test_name);
-
-
-void
-ct_clear_last_error(void);
 
 
 extern bool ct_exit_on_fail;

@@ -96,6 +96,10 @@ sp_blas_sdot(
     len_t inc_y)
 {
     float result = 0.0f;
+    SP_ASSERT_VALID_DIM(n);
+    SP_ASSERT_VALID_INC(inc_x);
+    SP_ASSERT_VALID_INC(inc_y);
+
     if (inc_x == 1 && inc_y == 1) {
         result = sp_blas_sdot_inc1(n, x, y);
     } else {

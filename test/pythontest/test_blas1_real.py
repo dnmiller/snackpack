@@ -4,7 +4,7 @@ import numpy as np
 
 from snackpack import blas
 from snackpack.util import (FloatArray, finfo, float_t_dtype, len_t_max,
-                            float_t)
+                            float_t, inc_t, len_t)
 
 
 # TODO: determine clean way of checking dimensions
@@ -81,8 +81,30 @@ def test_srotg():
         s_f = float_t()
         blas.srotg(a_f, b_f, c_f, s_f)
         # Kind of week precision here - LAPACK reference implementation is
-        # more accurate.
+        # more accurate than BLAS implementation.
         nptest.assert_almost_equal(
             a * c_f.value + b * s_f.value, a_f.value, decimal=5)
         nptest.assert_almost_equal(
             -a * s_f.value + b * c_f.value, 0, decimal=6)
+
+
+def test_srot():
+    """Test sp_blas_srot"""
+    inc_x = inc_t(1)
+    inc_y = inc_t(1)
+    n = len_t(100)
+
+    # TODO: find some pathological cases
+    # TODO: clean this up
+    for c, s in np.random.randn(10, 2):
+        c_f = float_t(c)
+        s_f = float_t(s)
+        x = FloatArray(np.random.randn(n.value, 1))
+        y = FloatArray(np.random.randn(n.value, 1))
+        x_res, y_res = [], []
+        for i in range(n.value):
+            x_res.append(c_f * x[i] + s_f * y[i])
+            y_res.append(c_f * y[i] - s_f * x[i])
+        x_res = FloatArray(x_res)
+        y_res = FloatArray(y_res)
+        blas.srot(n, x, inc_x, y, inc_y, c_f, s_f)

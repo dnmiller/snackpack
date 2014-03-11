@@ -3,7 +3,6 @@
 
 #include "ctest.h"
 #include "snackpack/blas1_real.h"
-#include "snackpack/error.h"
 
 
 static unsigned int err_count = 0;
@@ -14,7 +13,7 @@ typedef struct {
 
     len_t         len;
     len_t         inc;
-    const float  *data;
+    float       *data;
 
 } test_vector;
 
@@ -73,15 +72,6 @@ test_sasum(void)
         3.14f, 4.14f, 50.1f, 57.9f, 31.9f, 37.3f, 5.4f, 16.0f};
     const float SASUM_FAC = 2.5e-1;  /* 2^-2 */
 
-    /* Test for invalid dimensions */
-    ct_clear_last_error();
-    sp_blas_sasum(0, NULL, 1);
-    ct_assert_last_error(SP_ERROR_INVALID_DIM, "sasum: zero dim");
-
-    /* Test for invalid increment */
-    sp_blas_sasum(1, NULL, 0);
-    ct_assert_last_error(SP_ERROR_INVALID_INC, "sasum: zero inc");
-
     /* Run through test vectors */
     for (unsigned int i = 0; i < 8; i++) {
         float exp = SASUM_RESULTS[i];
@@ -108,15 +98,6 @@ test_snrm2(void)
         3.674234614174767e+00,
         9.655050491841045e+00};
     const float SNRM2_FAC = 2.5e-1;     /* 2^-1 */
-
-    /* Test for invalid dimensions */
-    ct_clear_last_error();
-    sp_blas_snrm2(0, NULL, 1);
-    ct_assert_last_error(SP_ERROR_INVALID_DIM, "snrm2: zero dim");
-
-    /* Test for invalid increment */
-    sp_blas_snrm2(1, NULL, 0);
-    ct_assert_last_error(SP_ERROR_INVALID_INC, "snrm2: zero inc");
 
     /* Run through test vectors */
     for (unsigned int i = 0; i < 8; i++) {
@@ -210,13 +191,6 @@ test_isamax(void)
     ct_assert_int_eq(3, sp_blas_isamax(5, test_vec, 1), "isamax check");
     ct_assert_int_eq(0, sp_blas_isamax(3, test_vec, 2), "isamax check");
     ct_assert_int_eq(2, sp_blas_isamax(3, test_vec, -2), "isamax check");
-
-    /* Invalid arguments */
-    ct_clear_last_error();
-    sp_blas_isamax(0, NULL, 1);
-    ct_assert_last_error(SP_ERROR_INVALID_DIM, "sasum: zero dim");
-    sp_blas_isamax(1, NULL, 0);
-    ct_assert_last_error(SP_ERROR_INVALID_INC, "sasum: zero inc");
 }
 
 
@@ -229,13 +203,6 @@ test_isamin(void)
     ct_assert_int_eq(3, sp_blas_isamin(5, test_vec, 1), "isamin check");
     ct_assert_int_eq(0, sp_blas_isamin(3, test_vec, 2), "isamin check");
     ct_assert_int_eq(2, sp_blas_isamin(3, test_vec, -2), "isamin check");
-
-    /* Invalid arguments */
-    ct_clear_last_error();
-    sp_blas_isamin(0, NULL, 1);
-    ct_assert_last_error(SP_ERROR_INVALID_DIM, "sasum: zero dim");
-    sp_blas_isamin(1, NULL, 0);
-    ct_assert_last_error(SP_ERROR_INVALID_INC, "sasum: zero inc");
 }
 
 
