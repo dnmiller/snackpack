@@ -5,17 +5,18 @@
 
 // TODO increase this after testing
 #ifndef SP_MAX_DIMENSION
-#define SP_MAX_DIMENSION (1000)
+#define SP_MAX_DIMENSION (10000)
 #endif
 
 
-typedef int_fast16_t len_t;
+typedef int32_t len_t;
 
 
 typedef enum {
 
     SP_TRI_UPPER,
-    SP_TRI_LOWER
+    SP_TRI_LOWER,
+    NUM_SP_TRI
 
 } SP_TRI_TYPE;
 
@@ -24,7 +25,8 @@ typedef enum {
 
     SP_TRANS_NONE,
     SP_TRANS_TRANSPOSE,
-    SP_TRANS_CONJUGATE
+    SP_TRANS_CONJUGATE,
+    NUM_SP_TRANS
 
 } SP_TRANS;
 
