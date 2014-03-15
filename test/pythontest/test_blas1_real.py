@@ -1,36 +1,15 @@
-from itertools import product, izip
+from itertools import izip
 
-import nose.tools as nt
 from numpy.testing import (
-        assert_array_equal, assert_array_almost_equal_nulp,
-        assert_almost_equal)
+    assert_array_equal, assert_array_almost_equal_nulp,
+    assert_almost_equal)
 
 import numpy as np
-from numpy.random import randint, randn
+from numpy.random import randn
 
 from snackpack import blas
 from snackpack.util import (
-    FloatArray, finfo, float_t_dtype, len_t_max, float_t, len_t,
-    indexed_vector)
-
-
-def randint_vector_generator(max_int=int(1e3), max_size=1e4):
-    def generator():
-        size = 1
-        while size <= max_size:
-            yield FloatArray(randint(-max_int, max_int, size=size))
-            size += min([10**(size/10), 1000])
-    return generator
-
-
-def randn_vector_generator(max_size=1e4):
-    def generator():
-        size = 1
-        while size <= max_size:
-            yield FloatArray(randn(size))
-            size += min([10**(size/10), 1000])
-    return generator
-
+    FloatArray, float_t, len_t, indexed_vector)
 
 
 increments = (-3, -2, -1, 1, 2, 3)
@@ -45,7 +24,7 @@ def vector_set(max_size=1e3, increments=increments):
             if n != 0:
                 idx = indexed_vector(x, n, inc)
                 yield [n, x, inc, idx]
-            size += min([10**(size/10), 1000])
+            size += min([10 ** (size / 10), 1000])
 
 
 def assert_nonindexed_unchanged(original, new, n, inc):
@@ -70,7 +49,7 @@ def test_sasum():
         x0 = x.copy()
         expected = sum(map(abs, idx))
         result = blas.sasum(n, x, inc)
-        assert_almost_equal(expected/result, 1.0, decimal=5)
+        assert_almost_equal(expected / result, 1.0, decimal=5)
         assert_array_equal(x0, x)
 
 
