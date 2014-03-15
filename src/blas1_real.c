@@ -414,29 +414,20 @@ sp_blas_sdsdot(
     const float * const y,
     len_t inc_y)
 {
-    double_t tmp = (double_t)sb;
+    float result = 0.0f;
 
     SP_ASSERT_VALID_DIM(n);
     SP_ASSERT_VALID_INC(inc_x);
     SP_ASSERT_VALID_INC(inc_y);
 
     if (inc_x == 1 && inc_y == 1) {
-        for (len_t i = 0; i < n; i++) {
-            tmp += (double_t)x[i] * (double_t)y[i];
-        }
+        result = sp_blas_sdsdot_inc1(n, sb, x, y);
     } else {
-        len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-        len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
-
-        for (len_t i = 0; i < n; i++) {
-            tmp += (double_t)x[ix] * (double_t)y[ix];
-            ix += inc_x;
-            iy += inc_y;
-        }
+        result = sp_blas_sdsdot_incxy(n, sb, x, inc_x, y, inc_y);
     }
 
 fail:
-    return (float)tmp;
+    return result;
 }
 
 

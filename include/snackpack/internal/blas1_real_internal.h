@@ -168,4 +168,22 @@ sp_blas_sdot_incxy(
     len_t inc_y);
 
 
+float
+sp_blas_sdsdot_inc1(
+    len_t n,
+    float sb,
+    const float * const x,
+    const float * const y);
+
+
+float
+sp_blas_sdsdot_incxy(
+    len_t n,
+    float sb,
+    const float * const x,
+    len_t inc_x,
+    const float * const y,
+    len_t inc_y);
+
+
 #endif

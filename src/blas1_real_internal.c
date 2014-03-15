@@ -386,9 +386,48 @@ sp_blas_sdot_incxy(
     len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
 
     for (len_t i = 0; i < n; i++) {
-        tmp += x[ix] * y[ix];
+        tmp += x[ix] * y[iy];
         ix += inc_x;
         iy += inc_y;
     }
     return tmp;
+}
+
+
+/* sdsdot for inc_x = inc_y = 1 */
+float
+sp_blas_sdsdot_inc1(
+    len_t n,
+    float sb,
+    const float * const x,
+    const float * const y)
+{
+    double tmp = (double)sb;
+    for (len_t i = 0; i < n; i++) {
+        tmp += (double)x[i] * (double)y[i];
+    }
+    return (float)tmp;
+}
+
+
+/* sdsdot for inc_x, inc_y != 1 */
+float
+sp_blas_sdsdot_incxy(
+    len_t n,
+    float sb,
+    const float * const x,
+    len_t inc_x,
+    const float * const y,
+    len_t inc_y)
+{
+    double tmp = (double)sb;
+    len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+    len_t iy = inc_y < 0 ? (len_t)((1 - n) * inc_y) : 0;
+
+    for (len_t i = 0; i < n; i++) {
+        tmp += (double)x[ix] * (double)y[iy];
+        ix += inc_x;
+        iy += inc_y;
+    }
+    return (float)tmp;
 }
