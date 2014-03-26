@@ -60,7 +60,7 @@ function(add_python_test_target TARGET_NAME TARGET_LIB IFACE_TARGET)
         message(FATAL_ERROR "nosetests not found! Aborting...")
     endif()
 
-    # This is where we copy the files. Make up a directory.
+    # This is where we copy the files. Make up a directory name.
     set(COPY_DIR ${CMAKE_BINARY_DIR}/${TARGET_NAME}_files)
 
     add_custom_target(${TARGET_NAME}

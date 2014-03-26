@@ -39,4 +39,7 @@ typedef enum {
 } SP_UNIT;
 
 
+/* Find the element of a matrix (assumes leading dimension = rows) */
+#define SP_MAT_IDX(i, j, rows)  ((i) + (rows) * (j))
+
 #endif

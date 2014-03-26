@@ -335,8 +335,14 @@ sp_blas_sscal_inc1(
     float alpha,
     float * const x)
 {
-    for (len_t i = 0; i < n; i++) {
-        x[i] *= alpha;
+    if (alpha == 0.0f) {
+        for (len_t i = 0; i < n; i++) {
+            x[i] = 0.0f;
+        }
+    } else {
+        for (len_t i = 0; i < n; i++) {
+            x[i] *= alpha;
+        }
     }
 }
 
@@ -350,9 +356,16 @@ sp_blas_sscal_incx(
     len_t inc_x)
 {
     len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-    for (len_t i = 0; i < n; i++) {
-        x[ix] *= alpha;
-        ix += inc_x;
+    if (alpha == 0.0f) {
+        for (len_t i = 0; i < n; i++) {
+            x[ix] = 0.0f;
+            ix += inc_x;
+        }
+    } else {
+        for (len_t i = 0; i < n; i++) {
+            x[ix] *= alpha;
+            ix += inc_x;
+        }
     }
 }
 

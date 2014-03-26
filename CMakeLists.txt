@@ -17,6 +17,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(PROJECT_SOURCES
     blas1_real.c
     blas1_real_internal.c
+    blas2_real.c
     error.c
 )
 

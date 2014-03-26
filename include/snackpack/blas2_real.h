@@ -7,28 +7,28 @@
 
 void
 sp_blas_strmv(
-    SP_TRI_UPLO uplo,
+    SP_TRI_TYPE up_or_lo,
     SP_TRANS trans,
-    SP_DIAG diag,
-    order_t order,
-    const float_t * const A,
-    order_t lda,
-    float_t * const x,
-    inc_t x);
+    SP_UNIT unit,
+    len_t n,
+    const float * const A,
+    len_t lda,
+    len_t inc_x);
 
 
 void
 sp_blas_sgemv(
     SP_TRANS trans,
-    order_t m,
-    order_t n,
+    len_t m,
+    len_t n,
     float_t alpha,
     const float_t * const a,
     len_t lda,
     const float_t * const x,
-    inc_t inc_x,
+    len_t inc_x,
     float_t beta,
     float_t * const y,
-    inc_t inc_y);
+    len_t inc_y);
+
 
 #endif

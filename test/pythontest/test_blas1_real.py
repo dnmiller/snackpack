@@ -1,5 +1,3 @@
-from itertools import izip
-
 from numpy.testing import (
     assert_equal, assert_array_equal, assert_array_almost_equal_nulp,
     assert_almost_equal)
@@ -9,51 +7,10 @@ from numpy.random import randn
 
 from snackpack import blas
 from snackpack.util import (
-    FloatArray, float_t, len_t, indexed_vector)
-
-
-single_increments = (-3, -2, -1, 1, 2, 3)
-double_increments = [(-3, -2, -1, 1, 2, 3), (3, -2, 1, -1, 2, -3)]
-
-
-def vector_generator(max_size=1e3, increments=single_increments):
-    for inc in increments:
-        size = 1
-        while size <= max_size:
-            x = FloatArray(randn(size))
-            n = len(x) / abs(inc)
-            if n != 0:
-                idx = indexed_vector(x, n, inc)
-                yield [n, x, inc, idx]
-            size += min([10 ** (size / 10), 1000])
-
-
-def double_vector_generator(max_size=1e3, increments=double_increments):
-    x_gen = vector_generator(increments=double_increments[0])
-    y_gen = vector_generator(increments=double_increments[1])
-    for x_par, y_par in izip(x_gen, y_gen):
-        n, x, inc_x, x_idx = x_par
-        y, inc_y, y_idx = y_par[1:]
-        yield n, x, inc_x, x_idx, y, inc_y, y_idx
-
-
-def assert_nonindexed_unchanged(original, new, n, inc):
-    """Assert that elements that should not be touched given the `n` and
-    `inc` arguments remain the same as the original.
-    """
-    x0 = original.copy()
-    x1 = new.copy()
-    # Set the values that ought to have changed to 0
-    if inc > 0:
-        x0[:n * inc:inc] = 0.0
-        x1[:n * inc:inc] = 0.0
-    elif inc < 0:
-        x0[(1 - n) * inc::inc] = 0.0
-        x1[(1 - n) * inc::inc] = 0.0
-    else:
-        raise ValueError('Invalid increment')
-    # Assert that the remaining elements are equal
-    assert_array_equal(x0, x1)
+    FloatArray, float_t, len_t, indexed_vector,
+    vector_generator,
+    double_vector_generator,
+    assert_nonindexed_unchanged)
 
 
 def test_sasum():
@@ -69,6 +26,7 @@ def test_sasum():
 def test_saxpy():
     """Test sp_blas_saxpy"""
     alpha = randn(50)
+    alpha[0] = 0
     for a in alpha:
         for n, x, inc_x, x_idx, y, inc_y, y_idx in double_vector_generator():
             y0 = y.copy()
@@ -146,7 +104,8 @@ def test_sdsdot():
         expected = np.dot(x_idx, y_idx) + base
         result = blas.sdsdot(n, base, x, inc_x, y, inc_y)
         # I think we're actually testing the NumPy precision more than SP
-        assert_almost_equal(expected / result, 1.0, decimal=4)
+        # here...
+        assert_almost_equal(expected / result, 1.0, decimal=3)
         assert_array_equal(x, x0)
         assert_array_equal(y, y0)
 
@@ -164,6 +123,7 @@ def test_snrm2():
 def test_sscal():
     """Test sp_blas_sscal"""
     alpha = randn(50)
+    alpha[0] = 0
     for a in alpha:
         for n, x, inc_x, x_idx in vector_generator():
             x0 = x.copy()
