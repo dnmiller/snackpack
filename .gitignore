@@ -19,6 +19,7 @@
 
 # Python
 *.pyc
+*.ropeproject
 
 # Builder, etc.
 build
