@@ -12,34 +12,4 @@
 typedef int32_t len_t;
 
 
-typedef enum {
-
-    SP_TRI_UPPER,
-    SP_TRI_LOWER,
-    NUM_SP_TRI
-
-} SP_TRI_TYPE;
-
-
-typedef enum {
-
-    SP_TRANS_NONE,
-    SP_TRANS_TRANSPOSE,
-    SP_TRANS_CONJUGATE,
-    NUM_SP_TRANS
-
-} SP_TRANS;
-
-
-typedef enum {
-
-    SP_UNIT_YES,
-    SP_UNIT_NO
-
-} SP_UNIT;
-
-
-/* Find the element of a matrix (assumes leading dimension = rows) */
-#define SP_MAT_IDX(i, j, rows)  ((i) + (rows) * (j))
-
 #endif

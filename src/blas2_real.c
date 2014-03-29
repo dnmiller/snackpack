@@ -13,12 +13,13 @@
  * or
  *      y = alpha*A^T*x + beta*y
  *
- * \param[in] trans     Whether or not to take the transpose of A
- * \param[in] m         Number of rows in A
- * \param[in] n         Number of columns in A
+ * \param[in] is_trans  True to take the transpose of A
+ * \param[in] rows      Number of rows in A
+ * \param[in] cols      Number of columns in A
  * \param[in] alpha     Scalar alpha
  * \param[in] A         Matrix A
- * \param[in] lda       Leading dimension of A - must be at least max(1, m)
+ * \param[in] lda       Leading dimension of A - must be at least 
+ *                      max(1, rows)
  * \param[in] x         Vector x
  * \param[in] inc_x     Increment (stride) for x
  * \param[in] beta      Scalar beta
@@ -27,9 +28,9 @@
  */
 void
 sp_blas_sgemv(
-    SP_TRANS trans,
-    len_t m,
-    len_t n,
+    bool is_trans,
+    len_t rows,
+    len_t cols,
     float alpha,
     const float * const A,
     len_t lda,
@@ -39,29 +40,20 @@ sp_blas_sgemv(
     float * const y,
     len_t inc_y)
 {
-    SP_ASSERT_VALID_TRANS(trans);
-    SP_ASSERT_VALID_DIM(m);
-    SP_ASSERT_VALID_DIM(n);
-    SP_ASSERT_VALID_LDA(lda, m);
+    SP_ASSERT_VALID_DIM(rows);
+    SP_ASSERT_VALID_DIM(cols);
+    SP_ASSERT_VALID_LDA(lda, rows);
     SP_ASSERT_VALID_INC(inc_x);
     SP_ASSERT_VALID_INC(inc_y);
 
     /* Determine the lengths of the x and y vectors.*/
     len_t len_x, len_y;
-    switch (trans) {
-        case SP_TRANS_NONE:
-            len_x = n;
-            len_y = m;
-            break;
-        case SP_TRANS_TRANSPOSE:
-        case SP_TRANS_CONJUGATE:
-            len_x = m;
-            len_y = n;
-            break;
-        /* Unreachable if asserts are enabled. */
-        case NUM_SP_TRANS:
-        default:
-            goto fail;
+    if (is_trans) {
+        len_x = rows;
+        len_y = cols;
+    } else {
+        len_x = cols;
+        len_y = rows;
     }
 
     /* Save some flops if we're all 0. */
@@ -93,7 +85,7 @@ sp_blas_sgemv(
         return;
     }
 
-    if (trans == SP_TRANS_NONE) {
+    if (!is_trans) {
         if (inc_x == 1 && inc_y == 1) {
             for (len_t i = 0; i < len_x; i++) {
                 float tmp = x[i] * alpha;
@@ -102,8 +94,7 @@ sp_blas_sgemv(
                     y[j] += A[j + a_offset] * tmp;
                 }
             }
-        } 
-        else {
+        } else {
             len_t ix = inc_x < 0 ? (len_t)((1 - len_x) * inc_x) : 0;
             for (len_t i = 0; i < len_x; i++) {
                 float tmp = x[ix] * alpha;
@@ -116,8 +107,7 @@ sp_blas_sgemv(
                 ix += inc_x;
             }
         }
-    } 
-    else {
+    } else {
         if (inc_x == 1 && inc_y == 1) {
             for (len_t i = 0; i < len_y; i++) {
                 float tmp = 0.0f;
@@ -127,14 +117,13 @@ sp_blas_sgemv(
                 }
                 y[i] += alpha * tmp;
             }
-        }
-        else {
+        } else {
             len_t iy = inc_y < 0 ? (len_t)((1 - len_y) * inc_y) : 0;
             for (len_t i = 0; i < len_y; i++) {
                 float tmp = 0.0f;
                 len_t a_offset = i * lda;
                 len_t ix = inc_x < 0 ? (len_t)((1 - len_x) * inc_x) : 0;
-                for (len_t j = 0; j < len_y; j++) {
+                for (len_t j = 0; j < len_x; j++) {
                     tmp += A[j + a_offset] * x[ix];
                     ix += inc_x;
                 }
@@ -149,63 +138,79 @@ fail:
 }
 
 
-#if 0
-/* Branch for strmv when no transpose is taken and the argument is
- * upper-triangular.
+/**
+ * Compute the product of a triangular matrix and a vector.
+ *
+ * Performs one of the operations
+ *  
+ *      x = A*x
+ * or
+ *      x = A^T*x
+ *
+ * \param[in] is_upper  True if A is upper triangular, false otherwise
+ * \param[in] is_trans  True to use the transpose of A
+ * \param[in] is_unit   True if A is unit-triangular
+ * \param[in] n         Number of rows/columns in A
+ * \param[in] lda       Leading dimension of A
+ * \param[in,out] x     On enter, vector x to multiply. On exit, result.
+ *                      Must have dimension at least 1 + (n - 1) * |inc_x|.
+ * \param[in] inc_x     Increment of x
  */
-static void
-strmv_no_trans_upper(
-    SP_UNIT unit,
-    len_t n,
-    const float * const A,
-    len_t lda,
-    len_t inc_x)
-{
-    if (inc_x == 1) {
-        for (len_t i = 0; i < n; i++) {
-        }
-    } else {
-        len_t kx = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
-    }
-}
-
-
-static void
-strmv_trans_upper(
-    SP_UNIT unit,
-    len_t n,
-    const float * const A,
-    len_t lda,
-    len_t inc_x)
-{
-}
-
-
 void
 sp_blas_strmv(
-    SP_TRI_TYPE up_or_lo,
-    SP_TRANS trans,
-    SP_UNIT unit,
+    bool is_upper,
+    bool is_trans,
+    bool is_unit,
     len_t n,
     const float * const A,
     len_t lda,
+    float * const x,
     len_t inc_x)
 {
-    if (n <= 0) {
-        // TODO: error
-        return;
-    }
-    if (up_or_lo == SP_TRI_UPPER) {
+    SP_ASSERT_VALID_DIM(n);
+    SP_ASSERT_VALID_LDA(lda, n);
+    SP_ASSERT_VALID_INC(inc_x);
 
-    } else if (up_or_lo == SP_TRI_LOWER) {
-        // TODO: implement
-        return;
+    if (is_trans) {
     } else {
-        // TODO: error
-        return;
+        if (is_upper) {
+            if (inc_x == 1) {
+                for (len_t i = 0; i < n; i++) {
+                    float tmp = x[i];
+                    len_t a_offset = i * lda;
+                    for (len_t j = 0; j < i; j++) {
+                        x[j] += A[j + a_offset] * tmp;
+                    }
+                    if (!is_unit) {
+                        x[i] *= A[i + a_offset];
+                    }
+                }
+            } else {
+                len_t ix = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+                for (len_t i = 0; i < n; i++) {
+                    float tmp = x[ix];
+                    len_t a_offset = i * lda;
+                    len_t jx = inc_x < 0 ? (len_t)((1 - n) * inc_x) : 0;
+                    for (len_t j = 0; j < i; j++) {
+                        x[jx] += A[j + a_offset] * tmp;
+                        jx += inc_x;
+                    }
+                    if (!is_unit) {
+                        x[ix] *= A[i + a_offset];
+                    }
+                    ix += inc_x;
+                }
+            }
+        } else {
+        }
     }
+
+fail:
+    return;
 }
 
+
+#if 0
 
 sp_blas_sgbmv
 

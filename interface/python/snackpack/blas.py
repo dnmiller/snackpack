@@ -116,3 +116,11 @@ sgemv = library_function(
      float_t, float_t_ptr, len_t],
     """Compute a general matrix-vector product (single-precision).
     """)
+
+
+strmv = library_function(
+    libsp, 'sp_blas_strmv', None,
+    [int_t, int_t, int_t, len_t, float_t_ptr, len_t, float_t_ptr, len_t],
+    """Compute the product of a triangular matrix and a vector
+    (single-precision).
+    """)

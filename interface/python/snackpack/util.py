@@ -122,6 +122,16 @@ def matrix_generator(max_size=1e2):
         lda += min([10 ** (lda / 10), 1000])
 
 
+def square_matrix_generator(max_size=1e3):
+    """Return a generator for random square matrices"""
+    lda = 1
+    while lda <= max_size:
+        for order in range(1, lda + 1):
+            A = FloatArray(randn(lda * order))
+            yield lda, order, A
+        lda += min([10 ** (lda / 10), 1000])
+
+
 def double_vector_generator(max_size=1e3, increments=double_increments):
     x_gen = vector_generator(increments=double_increments[0])
     y_gen = vector_generator(increments=double_increments[1])
