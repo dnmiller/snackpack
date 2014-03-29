@@ -109,16 +109,17 @@ def vector_generator(max_size=1e3, increments=single_increments):
             size += min([10 ** (size / 10), 1000])
 
 
-def matrix_generator(max_size=1e3):
+def matrix_generator(max_size=1e2):
     """Return a generator for random matrices"""
-    rows = 1
-    while rows <= max_size:
+    lda = 1
+    while lda <= max_size:
         cols = 1
         while cols <= max_size:
-            A = FloatArray(randn(rows * cols))
-            yield rows, cols, A
+            A = FloatArray(randn(lda * cols))
+            for rows in range(1, lda + 1, 2):
+                yield lda, rows, cols, A
             cols += min([10 ** (cols / 10), 1000])
-        rows += min([10 ** (rows / 10), 1000])
+        lda += min([10 ** (lda / 10), 1000])
 
 
 def double_vector_generator(max_size=1e3, increments=double_increments):

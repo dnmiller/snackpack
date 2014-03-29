@@ -42,7 +42,7 @@ sp_blas_sgemv(
     SP_ASSERT_VALID_TRANS(trans);
     SP_ASSERT_VALID_DIM(m);
     SP_ASSERT_VALID_DIM(n);
-    SP_ASSERT_VALID_INC(lda);
+    SP_ASSERT_VALID_LDA(lda, m);
     SP_ASSERT_VALID_INC(inc_x);
     SP_ASSERT_VALID_INC(inc_y);
 
@@ -97,22 +97,49 @@ sp_blas_sgemv(
         if (inc_x == 1 && inc_y == 1) {
             for (len_t i = 0; i < len_x; i++) {
                 float tmp = x[i] * alpha;
-                len_t ix_offset = i * len_y;
+                len_t a_offset = i * lda;
                 for (len_t j = 0; j < len_y; j++) {
-                    y[j] += A[j + ix_offset] * tmp;
+                    y[j] += A[j + a_offset] * tmp;
                 }
             }
         } 
+        else {
+            len_t ix = inc_x < 0 ? (len_t)((1 - len_x) * inc_x) : 0;
+            for (len_t i = 0; i < len_x; i++) {
+                float tmp = x[ix] * alpha;
+                len_t a_offset = i * lda;
+                len_t iy = inc_y < 0 ? (len_t)((1 - len_y) * inc_y) : 0;
+                for (len_t j = 0; j < len_y; j++) {
+                    y[iy] += A[j + a_offset] * tmp;
+                    iy += inc_y;
+                }
+                ix += inc_x;
+            }
+        }
     } 
     else {
         if (inc_x == 1 && inc_y == 1) {
             for (len_t i = 0; i < len_y; i++) {
                 float tmp = 0.0f;
-                len_t ix_offset = i * len_x;
+                len_t a_offset = i * lda;
                 for (len_t j = 0; j < len_x; j++) {
-                    tmp += A[j + ix_offset] * x[j];
+                    tmp += A[j + a_offset] * x[j];
                 }
                 y[i] += alpha * tmp;
+            }
+        }
+        else {
+            len_t iy = inc_y < 0 ? (len_t)((1 - len_y) * inc_y) : 0;
+            for (len_t i = 0; i < len_y; i++) {
+                float tmp = 0.0f;
+                len_t a_offset = i * lda;
+                len_t ix = inc_x < 0 ? (len_t)((1 - len_x) * inc_x) : 0;
+                for (len_t j = 0; j < len_y; j++) {
+                    tmp += A[j + a_offset] * x[ix];
+                    ix += inc_x;
+                }
+                y[iy] += alpha * tmp;
+                iy += inc_y;
             }
         }
     }
