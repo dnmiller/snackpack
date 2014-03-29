@@ -4,7 +4,8 @@ include(PythonLibTest)
 # All sources to be included in the unit test suite. These are copied into a
 # local directory in the build tree along side a binary.
 set(PYTHON_TEST_SOURCES
-    test_blas1_real.py
+    #test_blas1_real.py
+    test_blas2_real.py
 )
 
 add_python_test_target(

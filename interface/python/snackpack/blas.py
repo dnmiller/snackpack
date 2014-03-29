@@ -1,9 +1,8 @@
 import ctypes
 import os
-import inspect
 
 
-from util import float_t, float_t_ptr, len_t, len_t, library_function
+from util import float_t, float_t_ptr, len_t, int_t, library_function
 
 
 # TODO: portable filename
@@ -15,6 +14,12 @@ _libsp_dir = '../src'
 _libsp_filename = os.path.join(_libsp_dir, 'libsnackpack.dylib')
 
 libsp = ctypes.cdll.LoadLibrary(_libsp_filename)
+
+
+class SP_TRANS(object):
+    NONE = 0
+    TRANSPOSE = 1
+    CONJUGATE = 2
 
 
 sasum = library_function(
@@ -103,4 +108,11 @@ isamin = library_function(
     [len_t, float_t_ptr, len_t],
     """Return the index of the smallest-magnitude element of a vector
     (single-precision).
+    """)
+
+sgemv = library_function(
+    libsp, 'sp_blas_sgemv', None,
+    [int_t, len_t, len_t, float_t, float_t_ptr, len_t, float_t_ptr, len_t,
+     float_t, float_t_ptr, len_t],
+    """Compute a general matrix-vector product (single-precision).
     """)

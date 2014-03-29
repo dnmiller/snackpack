@@ -1,5 +1,6 @@
 #include "snackpack/blas2_real.h"
 #include "snackpack/blas1_real.h"
+#include "snackpack/internal/blas1_real_internal.h"
 #include "snackpack/error.h"
 
 
@@ -45,10 +46,6 @@ sp_blas_sgemv(
     SP_ASSERT_VALID_INC(inc_x);
     SP_ASSERT_VALID_INC(inc_y);
 
-    if (alpha == 0.0f && beta == 0.0f) {
-        goto done;
-    }
-
     /* Determine the lengths of the x and y vectors.*/
     len_t len_x, len_y;
     switch (trans) {
@@ -67,30 +64,59 @@ sp_blas_sgemv(
             goto fail;
     }
 
+    /* Save some flops if we're all 0. */
+    if (alpha == 0.0f && beta == 0.0f) {
+        if (inc_y == 1) {
+            for (len_t i = 0; i < len_y; i++) {
+                y[i] = 0.0f;
+            }
+            return;
+        } else {
+            len_t iy = inc_y < 0 ? (len_t)((1 - len_y) * inc_y) : 0;
+            for (len_t i = 0; i < len_y; i++) {
+                y[iy] = 0.0f;
+                iy += inc_y;
+            }
+            return;
+        }
+    }
+
     /* First, find beta * y */
-    sp_blas_sscal(len_y, beta, y, inc_y);
+    if (inc_y == 1) {
+        sp_blas_sscal_inc1(len_y, beta, y);
+    } else {
+        sp_blas_sscal_incx(len_y, beta, y, inc_y);
+    }
 
     /* If alpha is 0, we're done. */
     if (alpha == 0.0f) {
-        goto done;
+        return;
     }
 
     if (trans == SP_TRANS_NONE) {
         if (inc_x == 1 && inc_y == 1) {
-            /* Iterate over the rows of x / cols of A */
             for (len_t i = 0; i < len_x; i++) {
                 float tmp = x[i] * alpha;
-                /* Iterate over rows of A (col-major) */
                 len_t ix_offset = i * len_y;
-                for (len_t j = 0; j < len_x; j++) {
+                for (len_t j = 0; j < len_y; j++) {
                     y[j] += A[j + ix_offset] * tmp;
                 }
             }
-        } else {
+        } 
+    } 
+    else {
+        if (inc_x == 1 && inc_y == 1) {
+            for (len_t i = 0; i < len_y; i++) {
+                float tmp = 0.0f;
+                len_t ix_offset = i * len_x;
+                for (len_t j = 0; j < len_x; j++) {
+                    tmp += A[j + ix_offset] * x[j];
+                }
+                y[i] += alpha * tmp;
+            }
         }
     }
 
-done:
 fail:
     return;
 }

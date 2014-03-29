@@ -9,6 +9,7 @@ from numpy.testing import assert_array_equal
 float_t = ctypes.c_float
 float_t_ptr = ctypes.POINTER(float_t)
 len_t = ctypes.c_int32
+int_t = ctypes.c_int
 
 # TODO: .....
 assert ctypes.sizeof(float_t) == 4
@@ -104,8 +105,20 @@ def vector_generator(max_size=1e3, increments=single_increments):
             n = len(x) / abs(inc)
             if n != 0:
                 idx = indexed_vector(x, n, inc)
-                yield [n, x, inc, idx]
+                yield n, x, inc, idx
             size += min([10 ** (size / 10), 1000])
+
+
+def matrix_generator(max_size=1e3):
+    """Return a generator for random matrices"""
+    rows = 1
+    while rows <= max_size:
+        cols = 1
+        while cols <= max_size:
+            A = FloatArray(randn(rows * cols))
+            yield rows, cols, A
+            cols += min([10 ** (cols / 10), 1000])
+        rows += min([10 ** (rows / 10), 1000])
 
 
 def double_vector_generator(max_size=1e3, increments=double_increments):
