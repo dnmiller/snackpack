@@ -21,28 +21,44 @@ typedef enum {
 } SP_ERROR;
 
 
+/** Strings for error codes. */
 extern const char * SP_ERROR_DESCR[NUM_SP_ERROR];
 
 
+/* 
+ * If SP_PRINT_ERRORS is defined, then debug information is printed to
+ * SP_PRINTF(...), which is by default directed to printf if not defined.
+ * Note that SP_PRINTF is always invoked by the SP_PRINT_ERROR macro.
+ */
 #ifndef SP_PRINTF
-#ifdef SP_NO_PRINT
-#define SP_PRINTF(...)
-#else
 #include <stdio.h>
 #define SP_PRINTF(...) printf(__VA_ARGS__)
 #endif
-#endif
 
 
+/* 
+ * The SP_FAIL macro is invoked whenever an SP_ASSERT_* statement fails. If
+ * it is not defined and SP_FAIL_HARD is not defined, then the function
+ * exits, potentially returning an invalid result. If SP_FAIL_HARD is
+ * defined, exit(-1) is called.
+ */
 #ifndef SP_FAIL
 #ifdef SP_FAIL_HARD
-#define SP_FAIL() exit(-1);
+#define SP_FAIL() do { \
+    exit(-1); \
+} while (0)
 #else
-#define SP_FAIL() { goto fail; }
+#define SP_FAIL() do { \
+goto fail; \
+} while (0)
 #endif
 #endif
 
 
+/* 
+ * The SP_PRINT_ERROR macro calls SP_PRINTF with a pre-defined message
+ * output including the error code, description, and a relevant argument.
+ */
 #ifndef SP_PRINT_ERROR
 #define SP_PRINT_ERROR(errno, arg) \
 { \
@@ -56,6 +72,10 @@ extern const char * SP_ERROR_DESCR[NUM_SP_ERROR];
 #endif
 
 
+/* 
+ * If the SP_NO_ASSERT macro is defined, then none of the assertions are
+ * implemented.
+ */
 #ifndef SP_ASSERT_CONDITION
 #ifdef SP_NO_ASSERT
 #define SP_ASSERT_CONDITION(cond, errno, arg)
@@ -71,6 +91,10 @@ extern const char * SP_ERROR_DESCR[NUM_SP_ERROR];
 #endif
 
 
+/**
+ * Assert that an argument is a valid vector or matrix dimension. A valid
+ * dimension is > 0 and <= SP_MAX_DIMENSION.
+ */
 #ifndef SP_ASSERT_VALID_DIM
 #define SP_ASSERT_VALID_DIM(n) \
 { \
@@ -80,6 +104,10 @@ SP_ASSERT_CONDITION((n) <= SP_MAX_DIMENSION, SP_ERROR_DIM_TOO_LARGE, (n)); \
 #endif
 
 
+/**
+ * Assert that an argument is a valid vector or matrix increment. A valid
+ * increment is != 0 (it may be negative) and <= SP_MAX_DIMENSION.
+ */
 #ifndef SP_ASSERT_VALID_INC
 #define SP_ASSERT_VALID_INC(n) \
 { \
@@ -89,6 +117,12 @@ SP_ASSERT_CONDITION((n) <= SP_MAX_DIMENSION, SP_ERROR_DIM_TOO_LARGE, (n)); \
 #endif
 
 
+/**
+ * Assert that an argument is a valid leading dimension with respect to
+ * another parameter, typically the row dimension of a matrix. A valid
+ * leading dimension of a matrix with m rows is >= m and <=
+ * SP_MAX_DIMENSION.
+ */
 #ifndef SP_ASSERT_VALID_LDA
 #define SP_ASSERT_VALID_LDA(lda, m) \
 { \

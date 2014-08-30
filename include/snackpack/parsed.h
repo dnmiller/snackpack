@@ -1,15 +1,46 @@
-#ifndef _SNACKPACK_BLAS1_H_
-#define _SNACKPACK_BLAS1_H_
+# 1 "blas1_real.h"
+# 1 "<built-in>" 1
+# 1 "<built-in>" 3
+# 169 "<built-in>" 3
+# 1 "<command line>" 1
+# 1 "<built-in>" 2
+# 1 "blas1_real.h" 2
 
-#include "snackpack/snackpack.h"
 
-/* 
- * Include a trap to prevent pycparser/CFFI from scanning standard library
- * headers.
- */
-#ifndef _PYCPARSER_SCAN_
-#include <math.h>
-#endif
+
+
+# 1 "../snackpack/snackpack.h" 1
+
+
+
+
+
+
+
+
+
+
+
+
+// TODO increase this after testing
+
+
+
+
+
+typedef int32_t len_t;
+
+
+
+# 5 "blas1_real.h" 2
+
+
+
+
+
+
+
+
 
 
 float
@@ -93,25 +124,8 @@ sp_blas_snrm2(
 
 
 // Modified Givens is not finished yet.
-#if 0
-void
-sp_blas_srotm(
-    len_t n,
-    float * const x,
-    len_t inc_x,
-    float * const y,
-    len_t inc_y,
-    const float * const p);
 
-
-void
-sp_blas_srotmg(
-    float * const d1,
-    float * const d2,
-    float * const x,
-    float y,
-    float * const p);
-#endif
+# 115 "blas1_real.h"
 
 
 void
@@ -136,4 +150,4 @@ sp_blas_isamin(
     len_t inc_x);
 
 
-#endif
+

@@ -1,6 +1,13 @@
 #ifndef _SNACKPACK_SNACKPACK_H_
 #define _SNACKPACK_SNACKPACK_H_
+
+/* 
+ * Include a trap to prevent pycparser from scanning standard library
+ * headers.
+ */
+#ifndef _PYCPARSER_SCAN_
 #include <stdint.h>
+#endif
 
 
 // TODO increase this after testing
