@@ -10,8 +10,8 @@ set(PYINTERFACE_INSTALL_DIR
 
 set(PYTHON_INTERFACE_SOURCES
     snackpack/__init__.py
-    snackpack/blas.py
     snackpack/util.py
+    snackpack/libloader.py
 )
 
 install(
@@ -20,16 +20,16 @@ install(
 
 
 add_custom_command(
-    OUTPUT blas1_real_pyparsed.h
+    OUTPUT __blas1_real_preparsed.h
     COMMAND "${CMAKE_C_COMPILER}" 
         -E ${CMAKE_SOURCE_DIR}/include/snackpack/blas1_real.h 
         -I ${CMAKE_SOURCE_DIR}/include
-        -o ${PYINTERFACE_INSTALL_DIR}/headers/blas1_real_pyparsed.h
+        -o ${PYINTERFACE_INSTALL_DIR}/headers/__blas1_real_preparsed.h
         -D_PYCPARSER_SCAN_
     )
 
 add_custom_target(
     process_headers ALL
-    DEPENDS blas1_real_pyparsed.h
+    DEPENDS __blas1_real_preparsed.h
     COMMENT "Doin it")
 
