@@ -60,39 +60,6 @@ def numpy_to_ptr_with_offset(npobj, ptr_type, offset):
     return ctypes.cast(addr + shift, ptr_type)
 
 
-def library_function(clib, fname, restype, argtypes, doc):
-    libfunc = getattr(clib, fname)
-    libfunc.restype = restype
-    libfunc.argtypes = argtypes
-
-    def func(*args):
-        libargs = []
-        if len(args) != len(func.argtypes):
-            raise ValueError('Invalid number of arguments')
-
-        for arg, new_type in zip(args, func.argtypes):
-            if type(arg) == new_type:
-                libargs.append(arg)
-            elif hasattr(arg, 'ctypes'):
-                libargs.append(arg.ctypes.data_as(new_type))
-            elif hasattr(arg, 'value'):
-                try:
-                    libargs.append(new_type(arg.value))
-                except TypeError:
-                    # TODO: This can result in some really dumb casting stuff.
-                    libargs.append(new_type(arg))
-            else:
-                libargs.append(new_type(arg))
-
-        return libfunc(*libargs)
-
-    func.__name__ = fname
-    func.__doc__ = doc
-    func.argtypes = argtypes
-    func.restype = restype
-    return func
-
-
 single_increments = (-3, -2, -1, 1, 2, 3)
 double_increments = [(-3, -2, -1, 1, 2, 3), (3, -2, 1, -1, 2, -3)]
 

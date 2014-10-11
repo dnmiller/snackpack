@@ -1,16 +1,37 @@
+from subprocess import Popen, PIPE
 from cffi import FFI
 
 
-class LibInterface(object):
+def pycparsify_headers(header_list, include_paths):
+    """Given some headers, try to clean them up for pycparser.
     """
-    """
-    def __init__(self, libname, headername, func_prefix=None,
-                 strip_prefix=False):
-        # Some preprocessor lines in headers confuse CFFI (or more accurately
-        # pycparser).
-        with open(headername, 'r') as header_file:
-            header = ''.join(l for l in header_file if not l.startswith('#'))
+    includes = ['-I' + i for i in include_paths]
+    pyc_header = ''
+    for header in header_list:
+        # This works for clang on OS X
+        args = ['cpp'] + includes + ['-DPYCPARSER_SCAN', header]
+        cpp = Popen(args, stdout=PIPE)
+        # pycparser doesn't like some preprocessor output, so we scrub any
+        # remaining lines
+        pyc_header += ''.join(
+            l for l in cpp.stdout.readlines() if not l.startswith('#'))
+    return pyc_header
 
+
+class LibInterface(object):
+    """Library interface to C ABI
+
+    Given a shared library file and a header file, this returns an object
+    with CFFI-wrapped functions from the header as attributes. It's intended to
+    act like a Python module with the exported C functions as module-level
+    functions.
+
+    It can optionally restrict loaded functions to those with a given prefix and
+    remove the prefix if desired, allowing for more concise names than typical
+    c_style_naming_conventions.
+    """
+    def __init__(self, libname, header, func_prefix=None,
+                 strip_prefix=False):
         # Load the DLL via CFFI.
         ffi = FFI()
         ffi.cdef(header)
@@ -43,6 +64,8 @@ class WrappedCFunction(object):
     provided numpy arrays with dtype=float64, but the answer will be wrong.
     """
     def __init__(self, ffi, dll, function_name):
+        """Initialize a wrapped CFFI-imported function.
+        """
         self._ffi = ffi
         dll_full_name = 'function ' + function_name
         if dll_full_name not in ffi._parser._declarations:
@@ -62,4 +85,7 @@ class WrappedCFunction(object):
         return self._func(*casted)
 
     def __repr__(self):
+        """Return a string representation of the function. This calls the
+        wrapped CFFI function's __repr__ method.
+        """
         return self._func.__repr__()

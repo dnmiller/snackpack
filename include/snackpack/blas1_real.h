@@ -7,7 +7,7 @@
  * Include a trap to prevent pycparser/CFFI from scanning standard library
  * headers.
  */
-#ifndef _PYCPARSER_SCAN_
+#ifndef PYCPARSER_SCAN
 #include <math.h>
 #endif
 
