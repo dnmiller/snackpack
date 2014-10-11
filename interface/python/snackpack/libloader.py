@@ -33,9 +33,9 @@ class LibInterface(object):
     def __init__(self, libname, header, func_prefix=None,
                  strip_prefix=False):
         # Load the DLL via CFFI.
-        ffi = FFI()
-        ffi.cdef(header)
-        dll = ffi.dlopen(libname)
+        self._ffi = FFI()
+        self._ffi.cdef(header)
+        self._dll = self._ffi.dlopen(libname)
 
         # Scan for a list of functions that begin with func_prefix.
         if func_prefix is None:
@@ -44,7 +44,7 @@ class LibInterface(object):
         # This is a hack into the CFFI implementation and may break in future
         # CFFI versions.
         funcs = [
-            f[len('function '):] for f in ffi._parser._declarations.keys()
+            f[len('function '):] for f in self._ffi._parser._declarations.keys()
             if f.startswith('function ' + func_prefix)]
 
         # Bind the functions from dll to self.
@@ -52,7 +52,8 @@ class LibInterface(object):
             attr_name = func
             if strip_prefix:
                 attr_name = attr_name[len(func_prefix):]
-            setattr(self, attr_name, WrappedCFunction(ffi, dll, func))
+            setattr(self, attr_name, WrappedCFunction(self._ffi, self._dll,
+                                                      func))
 
 
 class WrappedCFunction(object):

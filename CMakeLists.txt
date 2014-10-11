@@ -21,11 +21,18 @@ set(PROJECT_SOURCES
     error.c
 )
 
+# Where to put things after running "make install". This affects Python /
+# Matlab interfaces.
+set(INSTALL_BASE_DIR ${PROJECT_SOURCE_DIR}/bin)
+
 # Local header files
 include_directories(include)
 
 # Project source files
 add_subdirectory(src)
+
+# Copy target for includes
+add_subdirectory(include)
 
 # Python / Matlab interfaces
 add_subdirectory(interface)

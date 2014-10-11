@@ -17,19 +17,3 @@ set(PYTHON_INTERFACE_SOURCES
 install(
     FILES ${PYTHON_INTERFACE_SOURCES}
     DESTINATION ${PYINTERFACE_INSTALL_DIR})
-
-
-add_custom_command(
-    OUTPUT __blas1_real_preparsed.h
-    COMMAND "${CMAKE_C_COMPILER}" 
-        -E ${CMAKE_SOURCE_DIR}/include/snackpack/blas1_real.h 
-        -I ${CMAKE_SOURCE_DIR}/include
-        -o ${PYINTERFACE_INSTALL_DIR}/headers/__blas1_real_preparsed.h
-        -D_PYCPARSER_SCAN_
-    )
-
-add_custom_target(
-    process_headers ALL
-    DEPENDS __blas1_real_preparsed.h
-    COMMENT "Doin it")
-
