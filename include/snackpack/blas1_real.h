@@ -1,5 +1,5 @@
-#ifndef _SNACKPACK_BLAS1_H_
-#define _SNACKPACK_BLAS1_H_
+#ifndef _SNACKPACK_BLAS1_REAL_H_
+#define _SNACKPACK_BLAS1_REAL_H_
 
 #include "snackpack/snackpack.h"
 
